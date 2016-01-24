@@ -1,6 +1,6 @@
 import gi
 import menu
-import pybib
+# import pybib
 import view
 from gi.repository import Gtk
 gi.require_version("Gtk", "3.0")
@@ -21,11 +21,9 @@ class MyWindow(Gtk.Window):
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box.pack_start(MenuElem.menubar, False, False, 0)
         self.add(box)
+        self.TreeView = view.treeview()
 
-        parsing = pybib.parser()
-
-        TreeView = view.treeview()
-# Generate entry fiels
+        # Generate entry fiels
         key_store = Gtk.ListStore(int, str)
         keys = ["Article", "Book", "Booklet", "Conference", "inBook",
                 "inCollection", "inProseedings", "Manual", "MasterThesis",
@@ -33,13 +31,14 @@ class MyWindow(Gtk.Window):
                 "Unpublished"]
         for key in keys:
             key_store.append([keys.index(key), key])
+
         key_combo = Gtk.ComboBox.new_with_model_and_entry(key_store)
         key_combo.set_entry_text_column(1)
 
         KeyEntry = Gtk.Entry()
         KeyEntry.set_placeholder_text("BibtexKey")
 
-#  Generate the Entry fields
+        #  Generate the Entry fields
         xpos = 0
         minf = 0
         self.notebook = Gtk.Notebook()
@@ -65,34 +64,11 @@ class MyWindow(Gtk.Window):
                 self.npage.attach_next_to(self.efield, self.lfield,
                                           Gtk.PositionType.RIGHT, 1, 1)
                 ypos += 1
+
             self.notebook.append_page(self.npage, Gtk.Label(Tabs[note]))
             minf = maxf
 
-# Now create the treeview
-#         booklist = []
-#         filename = "mkBiB"
-#         # filename = MenuElem.file_open_clicked(filename)
-#         hb = Gtk.HeaderBar()
-#         hb.set_show_close_button(True)
-#         hb.props.title = filename
-#         self.set_titlebar(hb)
-#         # parsing.parsing_read(filename, booklist)
-#         self.bookstore = Gtk.ListStore(int, str, str, str, str)
-#         for ref in booklist:
-#             self.bookstore.append(list(ref))
-#         self.current_filter_language = None
-#         self.view = Gtk.TreeView(model=self.bookstore)
-#         for i, column_title in enumerate(["Index", "Title", "Author",
-#                                           "Publishers", "Year"]):
-#             renderer = Gtk.CellRendererText()
-#             renderer.set_property("wrap-width", 400)
-#             if i > 2:
-#                 renderer.set_property("wrap-width", 150)
-#             renderer.set_property("wrap-mode", 0)
-#             column = Gtk.TreeViewColumn(column_title, renderer, text=i)
-#             self.view.append_column(column)
-
-# Create the buttons to get data
+        # Create the buttons to get data
         bcreate = Gtk.Button("Create")
         bcreate.connect("clicked", self.get_data)
         bsearch = Gtk.Button("Search Google")
@@ -101,7 +77,7 @@ class MyWindow(Gtk.Window):
         grid = Gtk.Grid()
         grid.attach(key_combo, 0, 0, 6, 2)
         grid.attach(KeyEntry, 8, 0, 4, 2)
-        grid.attach(TreeView.view, 30, 0, 25, 21)
+        grid.attach(self.TreeView.view, 30, 0, 25, 21)
         grid.attach(self.notebook, 0, 2, 12, 12)
         grid.attach(bcreate, 0, 14,  4, 1)
         grid.attach(bsearch, 8, 14,  4, 1)

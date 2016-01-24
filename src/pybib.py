@@ -1,6 +1,9 @@
 class parser():
     # def __init__(self):
+        parsing_status = False
+
         def parsing_read(self, filename):
+            self.booklist = []
             import bibtexparser
             from bibtexparser.bparser import BibTexParser
             # from bibtexparser.bwriter import BibTexWriter
@@ -14,9 +17,9 @@ class parser():
                               db.entries[i].get("author"),
                               db.entries[i].get("journal"),
                               db.entries[i].get("year"))
-                    print(tuples)
-                    # booklist.append(tuples)
-
+                    # print(tuples)
+                    self.booklist.append(tuples)
+                self.parsing_status = True
     # writer = BibTexWriter()
     # with open("Trial.bib", "w") as new_bib:
     # new_bib.write(writer.write(db))

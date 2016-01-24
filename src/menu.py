@@ -1,8 +1,8 @@
 import gi
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Gdk, Pango
 import pybib
 import view
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
 
 
 class MenuManager(Gtk.UIManager):
@@ -70,10 +70,12 @@ class MenuManager(Gtk.UIManager):
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
             filename = dialog.get_filename()
+            dialog.destroy()
             self.parsing.parsing_read(filename)
+            self.TreeView.viewer(self.parsing.booklist)
         elif response == Gtk.ResponseType.CANCEL:
             print("Cancel clicked")
-        dialog.destroy()
+            dialog.destroy()
 
     def file_save_clicked(self, widget):
         dialog = Gtk.FileChooserDialog("Save as an existing file", None,
