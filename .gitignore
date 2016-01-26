@@ -1,1 +1,4 @@
 *.pyc
+report.bib
+src/report.bib
+trials/

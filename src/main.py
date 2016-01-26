@@ -5,9 +5,9 @@ import view
 from gi.repository import Gtk
 gi.require_version("Gtk", "3.0")
 
-booklist = [("The Art of Computer Programming", "D.Knuth", "Addison", "1980"),
-            ("Feynman Lectures in Physics", "R.P. Feynman", "Addison", "1976")]
-columns = ["Index", "Title", "Author", "Publishers" "Year"]
+# booklist = [("The Art of Computer Programming", "D.Knuth", "Addison", "1980"),
+            # ("Feynman Lectures in Physics", "R.P. Feynman", "Addison", "1976")]
+# columns = ["Index", "Title", "Author", "Publishers" "Year"]
 
 
 class MyWindow(Gtk.Window):
@@ -23,7 +23,7 @@ class MyWindow(Gtk.Window):
         self.add(box)
         self.TreeView = view.treeview()
 
-        # Generate entry fiels
+        # Generate Entry type
         key_store = Gtk.ListStore(int, str)
         keys = ["Article", "Book", "Booklet", "Conference", "inBook",
                 "inCollection", "inProseedings", "Manual", "MasterThesis",
@@ -32,36 +32,37 @@ class MyWindow(Gtk.Window):
         for key in keys:
             key_store.append([keys.index(key), key])
 
-        key_combo = Gtk.ComboBox.new_with_model_and_entry(key_store)
-        key_combo.set_entry_text_column(1)
+        self.key_combo = Gtk.ComboBox.new_with_model_and_entry(key_store)
+        self.key_combo.set_entry_text_column(1)
 
-        KeyEntry = Gtk.Entry()
-        KeyEntry.set_placeholder_text("BibtexKey")
+        # BibTeX Key
+        self.KeyEntry = Gtk.Entry()
+        self.KeyEntry.set_placeholder_text("BibtexKey")
 
-        #  Generate the Entry fields
+        #  Generate the  Fields
+        self.notebook = Gtk.Notebook()
         xpos = 0
         minf = 0
-        self.notebook = Gtk.Notebook()
-        fields = ["Author",  "Year",  "Journal", "Title", "Publisher", "Page",
+        self.all_fields = dict()
+        self.fields = ["Author",  "Year",  "Journal", "Title", "Publisher", "Page",
                   "Address", "Annote", " Booktitle", "Chapter", "Crossred",
                   "Edition", "Editor", "HowPublished", "Institution", "Month",
                   "Note", "Number", "Organization", "Pages", "Publishers",
                   "School", "Series", "Type"]
-        Tabs = ["Essential", "Publishers", "Extra", "Extra"]
-        for note in range(int(len(fields)/6)):
+        Tabs = ["Essential", "Publishers", "Extra I", "Extra II"]
+        for note in range(int(len(self.fields)/6)):
             ypos = 0
             self.npage = "page"+str(note)
             self.npage = Gtk.Grid()
             self.npage.set_border_width(10)
             maxf = minf+6
-            for field in fields[minf:maxf]:
+            for field in self.fields[minf:maxf]:
                 self.lfield = "L" + field
-                self.efield = "E" + field
                 self.lfield = Gtk.Label(field)
-                self.efield = Gtk.Entry()
-                self.efield.set_placeholder_text(field)
+                self.all_fields[field] = Gtk.Entry()
+                self.all_fields[field].set_placeholder_text(field)
                 self.npage.attach(self.lfield, xpos, ypos, 2, 1)
-                self.npage.attach_next_to(self.efield, self.lfield,
+                self.npage.attach_next_to(self.all_fields[field], self.lfield,
                                           Gtk.PositionType.RIGHT, 1, 1)
                 ypos += 1
 
@@ -75,10 +76,10 @@ class MyWindow(Gtk.Window):
         bsearch.connect("clicked", self.on_button_clicked)
 
         grid = Gtk.Grid()
-        grid.attach(key_combo, 0, 0, 6, 2)
-        grid.attach(KeyEntry, 8, 0, 4, 2)
-        grid.attach(self.TreeView.view, 30, 0, 25, 21)
+        grid.attach(self.key_combo, 0, 0, 6, 2)
+        grid.attach(self.KeyEntry, 8, 0, 4, 2)
         grid.attach(self.notebook, 0, 2, 12, 12)
+        grid.attach(self.TreeView.view, 16, 0, 25, 21)
         grid.attach(bcreate, 0, 14,  4, 1)
         grid.attach(bsearch, 8, 14,  4, 1)
         box.pack_start(grid, False, False, 0)
@@ -87,13 +88,20 @@ class MyWindow(Gtk.Window):
         print("Hello World")
 
     def get_data(self, widget):
+        # First, get Type
+        tree_iter = self.key_combo.get_active_iter()
+        if tree_iter != None:
+            model = self.key_combo.get_model()
+            row_id, name = model[tree_iter][:2]
+            print(name)
+        else:
+            entry = self.key_combo.get_child()
+            print(entry.get_text())
+
+        # Now, the KeyEntry and Fields
         print(self.KeyEntry.get_text())
-        dAu = self.EAuthor.get_text()
-        dJo = self.EJournal.get_text()
-        dYe = self.EYear.get_text()
-        print(dAu)
-        print(dJo)
-        print(dYe)
+        for field in self.fields:
+            print(self.all_fields[field].get_text())
 
 
 win = MyWindow()
