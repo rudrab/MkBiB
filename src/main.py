@@ -5,10 +5,6 @@ import view
 from gi.repository import Gtk
 gi.require_version("Gtk", "3.0")
 
-# booklist = [("The Art of Computer Programming", "D.Knuth", "Addison", "1980"),
-            # ("Feynman Lectures in Physics", "R.P. Feynman", "Addison", "1976")]
-# columns = ["Index", "Title", "Author", "Publishers" "Year"]
-
 
 class MyWindow(Gtk.Window):
 
@@ -44,11 +40,12 @@ class MyWindow(Gtk.Window):
         xpos = 0
         minf = 0
         self.all_fields = dict()
-        self.fields = ["Author",  "Year",  "Journal", "Title", "Publisher", "Page",
-                  "Address", "Annote", " Booktitle", "Chapter", "Crossred",
-                  "Edition", "Editor", "HowPublished", "Institution", "Month",
-                  "Note", "Number", "Organization", "Pages", "Publishers",
-                  "School", "Series", "Type"]
+        self.fields = ["Author",  "Year",  "Journal", "Title", "Publisher",
+                       "Page", "Address", "Annote", " Booktitle", "Chapter",
+                       "Crossred", "Edition", "Editor", "HowPublished",
+                       "Institution", "Month", "Note", "Number",
+                       "Organization", "Pages", "Publishers", "School",
+                       "Series", "Type"]
         Tabs = ["Essential", "Publishers", "Extra I", "Extra II"]
         for note in range(int(len(self.fields)/6)):
             ypos = 0
@@ -69,20 +66,32 @@ class MyWindow(Gtk.Window):
             self.notebook.append_page(self.npage, Gtk.Label(Tabs[note]))
             minf = maxf
 
+        # Get headerbar
+        # hb = Gtk.HeaderBar()
+        # hb.props.title = MenuElem.file_open_clicked(filename)
+
         # Create the buttons to get data
         bcreate = Gtk.Button("Create")
         bcreate.connect("clicked", self.get_data)
         bsearch = Gtk.Button("Search Google")
         bsearch.connect("clicked", self.on_button_clicked)
 
+        scroll = Gtk.ScrolledWindow()
+        # scroll.set_border_width(10)
+        scroll.set_hexpand(False)
+        scroll.set_vexpand(True)
+        # scroll.connect("size-allocate", self.on_resize, scroll, self.Treeview.view)
+
         grid = Gtk.Grid()
+        grid.set_column_spacing(20)
         grid.attach(self.key_combo, 0, 0, 6, 2)
         grid.attach(self.KeyEntry, 8, 0, 4, 2)
         grid.attach(self.notebook, 0, 2, 12, 12)
-        grid.attach(self.TreeView.view, 16, 0, 25, 21)
+        grid.attach(scroll, 15, 0, 57, 21)
         grid.attach(bcreate, 0, 14,  4, 1)
         grid.attach(bsearch, 8, 14,  4, 1)
         box.pack_start(grid, False, False, 0)
+        scroll.add(self.TreeView.view)
 
     def on_button_clicked(self, widget):
         print("Hello World")
@@ -90,19 +99,25 @@ class MyWindow(Gtk.Window):
     def get_data(self, widget):
         # First, get Type
         tree_iter = self.key_combo.get_active_iter()
-        if tree_iter != None:
+        if tree_iter is not None:
             model = self.key_combo.get_model()
             row_id, name = model[tree_iter][:2]
-            print(name)
         else:
             entry = self.key_combo.get_child()
-            print(entry.get_text())
+            name = entry.get_text()
 
-        # Now, the KeyEntry and Fields
-        print(self.KeyEntry.get_text())
-        for field in self.fields:
-            print(self.all_fields[field].get_text())
-
+        neworder = [3, 0, 2, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                    13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+        fields = [self.fields[i] for i in neworder]
+        datalist = []
+        datadict = []
+        datadict.append(name)
+        datadict.append(self.KeyEntry.get_text())
+        datatup = tuple([name] + [self.KeyEntry.get_text()] +
+                        [self.all_fields[field].get_text() or None
+                         for field in fields])
+        datalist.append(datatup)
+        self.TreeView.viewer(datalist)
 
 win = MyWindow()
 win.connect("delete-event", Gtk.main_quit)

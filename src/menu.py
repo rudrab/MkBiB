@@ -71,8 +71,12 @@ class MenuManager(Gtk.UIManager):
         if response == Gtk.ResponseType.OK:
             filename = dialog.get_filename()
             dialog.destroy()
+            self.TreeView.bookstore.clear()
+            global indxcount
+            indxcount = 0
             self.parsing.parsing_read(filename)
             self.TreeView.viewer(self.parsing.booklist)
+            # self.TreeView.view.set_model()
         elif response == Gtk.ResponseType.CANCEL:
             print("Cancel clicked")
             dialog.destroy()
@@ -82,12 +86,13 @@ class MenuManager(Gtk.UIManager):
                                        Gtk.FileChooserAction.SAVE,
                                        (Gtk.STOCK_CANCEL,
                                         Gtk.ResponseType.CANCEL,
-                                        Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+                                        Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
         # self.add_filters(dialog)
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
-            self.filename = dialog.get_filename()
-            return(self.filename)
+            filename = dialog.get_filename()
+            self.parsing.parsing_write(filename)
+            # return(self.filename)
         elif response == Gtk.ResponseType.CANCEL:
             print("Cancel clicked")
 
