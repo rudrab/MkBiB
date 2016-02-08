@@ -16,7 +16,7 @@ class treeview():
         renderer = Gtk.CellRendererText()
         renderer.set_property("wrap-width", 300)
         if i > 4:
-            renderer.set_property("wrap-width", 150)
+            renderer.set_property("wrap-width", 100)
         renderer.set_property("wrap-mode", 0)
         column = Gtk.TreeViewColumn(column_title, renderer, text=i)
         view.append_column(column)

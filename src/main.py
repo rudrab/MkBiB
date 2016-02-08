@@ -1,21 +1,33 @@
 import gi
+import sys
 import menu
-# import pybib
 import view
-from gi.repository import Gtk
+from gi.repository import Gtk, Gio  # , GLib, Gdk
 gi.require_version("Gtk", "3.0")
 
 
-class MyWindow(Gtk.Window):
+class Window(Gtk.ApplicationWindow):
+    def __init__(self, application, giofile=None):
+        Gtk.ApplicationWindow.__init__(self,
+                                       application=application,
+                                       default_width=1000,
+                                       default_height=200,
+                                       title="mkbib")
 
-    def __init__(self):
-        Gtk.Window.__init__(self, title="mkBiB")
-        self.set_default_size(1000, 200)
-        self.set_border_width(10)
-
+        self.TreeView = view.treeview()
         MenuElem = menu.MenuManager()
+        # New Menu
+        action = Gio.SimpleAction(name="save")
+        action.connect("activate", MenuElem.file_save_clicked)
+        self.add_action(action)
+
+        # Open menu
+        action = Gio.SimpleAction(name="open")
+        action.connect("activate", MenuElem.file_open_clicked, )
+        self.add_action(action)
+
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        box.pack_start(MenuElem.menubar, False, False, 0)
+        # box.pack_start(MenuElem.menubar, False, False, 0)
         self.add(box)
         self.TreeView = view.treeview()
 
@@ -66,38 +78,28 @@ class MyWindow(Gtk.Window):
             self.notebook.append_page(self.npage, Gtk.Label(Tabs[note]))
             minf = maxf
 
-        # Get headerbar
-        # hb = Gtk.HeaderBar()
-        # hb.props.title = MenuElem.file_open_clicked(filename)
-
         # Create the buttons to get data
         bcreate = Gtk.Button("Create")
         bcreate.connect("clicked", self.get_data)
         bsearch = Gtk.Button("Search Google")
-        bsearch.connect("clicked", self.on_button_clicked)
 
         scroll = Gtk.ScrolledWindow()
-        # scroll.set_border_width(10)
         scroll.set_hexpand(False)
         scroll.set_vexpand(True)
-        # scroll.connect("size-allocate", self.on_resize, scroll, self.Treeview.view)
 
         grid = Gtk.Grid()
-        grid.set_column_spacing(20)
+        grid.set_column_spacing(10)
         grid.attach(self.key_combo, 0, 0, 6, 2)
         grid.attach(self.KeyEntry, 8, 0, 4, 2)
         grid.attach(self.notebook, 0, 2, 12, 12)
-        grid.attach(scroll, 15, 0, 57, 21)
+        grid.attach(scroll, 15, 0, 105, 21)
         grid.attach(bcreate, 0, 14,  4, 1)
         grid.attach(bsearch, 8, 14,  4, 1)
         box.pack_start(grid, False, False, 0)
         scroll.add(self.TreeView.view)
-
-    def on_button_clicked(self, widget):
-        print("Hello World")
+        self.show_all()
 
     def get_data(self, widget):
-        # First, get Type
         tree_iter = self.key_combo.get_active_iter()
         if tree_iter is not None:
             model = self.key_combo.get_model()
@@ -119,7 +121,64 @@ class MyWindow(Gtk.Window):
         datalist.append(datatup)
         self.TreeView.viewer(datalist)
 
-win = MyWindow()
-win.connect("delete-event", Gtk.main_quit)
-win.show_all()
-Gtk.main()
+
+class mkbib(Gtk.Application):
+    def __init__(self):
+        Gtk.Application.__init__(self)
+        self.connect("startup", self.startup)
+        self.connect("activate", self.activate)
+
+    def about_activated(self, action, data=None):
+        dialog = Gtk.AboutDialog(program_name="mkbib",
+                                 title="About mkbib",
+                                 comments="Not much to say, really.")
+        dialog.run()
+        dialog.destroy()
+
+    def new_window(self, filename=None):
+        window = Window(self, filename)
+        window.show()
+
+    def open(self, application, files, n_files, hint):
+        for giofile in files:
+            self.new_window(self, giofile)
+
+    def activate(self, data=None):
+        self.new_window()
+
+    def startup(self, data=None):
+
+        action = Gio.SimpleAction(name="new")
+        action.connect("activate", lambda a, b: self.activate())
+        self.add_action(action)
+
+        action = Gio.SimpleAction(name="about")
+        action.connect("activate", self.about_activated)
+        self.add_action(action)
+
+        action = Gio.SimpleAction(name="quit")
+        action.connect("activate", lambda a, b: self.quit())
+        self.add_action(action)
+
+        builder = Gtk.Builder()
+        builder.add_from_file("menubar.ui")
+        self.set_menubar(builder.get_object("menubar"))
+        self.set_app_menu(builder.get_object("app-menu"))
+
+
+def install_excepthook():
+    """ Make sure we exit when an unhandled exception occurs. """
+    old_hook = sys.excepthook
+
+    def new_hook(etype, evalue, etb):
+        old_hook(etype, evalue, etb)
+        while Gtk.main_level():
+            Gtk.main_quit()
+        sys.exit()
+    sys.excepthook = new_hook
+
+
+if __name__ == "__main__":
+    app = mkbib()
+    r = app.run(sys.argv)
+    sys.exit(r)

@@ -25,5 +25,6 @@ class parser():
         # db = BibDatabase()
         writer = BibTexWriter()
         writer.indent = '    '
+        print(self.db)
         with open(filename, 'w') as bibfile:
-            bibfile.write(writer.write(self.db))
+            bibfile.write(writer.write(self.booklist))
