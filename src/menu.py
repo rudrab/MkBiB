@@ -1,11 +1,11 @@
 import gi
 import pybib
 import view
-gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
+gi.require_version("Gtk", "3.0")
 
 
-class MenuManager:#(Gtk.UIManager):
+class MenuManager:
 
     def __init__(self):
         self.parsing = pybib.parser()
@@ -47,27 +47,33 @@ class MenuManager:#(Gtk.UIManager):
             filename = dialog.get_filename()
             dialog.destroy()
             self.TreeView.bookstore.clear()
-            global indxcount
-            indxcount = 0
+            self.TreeView.indxcount = 0
             self.parsing.parsing_read(filename)
             self.TreeView.viewer(self.parsing.booklist)
-            # self.TreeView.view.set_model()
         elif response == Gtk.ResponseType.CANCEL:
             print("Cancel clicked")
             dialog.destroy()
 
-    def file_save_clicked(self, widget):
+    def file_save_clicked(self, SimpleAction, parameter):
         dialog = Gtk.FileChooserDialog("Save as an existing file", None,
                                        Gtk.FileChooserAction.SAVE,
                                        (Gtk.STOCK_CANCEL,
                                         Gtk.ResponseType.CANCEL,
                                         Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
-        # self.add_filters(dialog)
+        filter = Gtk.FileFilter()
+        filter.set_name("BiBTex File")
+        filter.add_pattern("*.bib")
+        dialog.add_filter(filter)
+        filter = Gtk.FileFilter()
+        filter.set_name("All Files")
+        filter.add_pattern("*")
+        dialog.add_filter(filter)
+
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
             filename = dialog.get_filename()
+            print(filename)
             self.parsing.parsing_write(filename)
-            # return(self.filename)
         elif response == Gtk.ResponseType.CANCEL:
             print("Cancel clicked")
         dialog.destroy()

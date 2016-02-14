@@ -15,15 +15,15 @@ class Window(Gtk.ApplicationWindow):
                                        title="mkbib")
 
         self.TreeView = view.treeview()
-        MenuElem = menu.MenuManager()
+        self.MenuElem = menu.MenuManager()
         # New Menu
         action = Gio.SimpleAction(name="save")
-        action.connect("activate", MenuElem.file_save_clicked)
+        action.connect("activate", self.MenuElem.file_save_clicked)
         self.add_action(action)
 
         # Open menu
         action = Gio.SimpleAction(name="open")
-        action.connect("activate", MenuElem.file_open_clicked, )
+        action.connect("activate", self.MenuElem.file_open_clicked)
         self.add_action(action)
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -112,15 +112,16 @@ class Window(Gtk.ApplicationWindow):
                     13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
         fields = [self.fields[i] for i in neworder]
         datalist = []
-        datadict = []
-        datadict.append(name)
-        datadict.append(self.KeyEntry.get_text())
+        # datadict = {}
         datatup = tuple([name] + [self.KeyEntry.get_text()] +
                         [self.all_fields[field].get_text() or None
                          for field in fields])
+        # print(datatup)
+        # datadict = dict(zip(fields, datatup))
+        # print(datadict)
         datalist.append(datatup)
         self.TreeView.viewer(datalist)
-
+        print(datalist)
 
 class mkbib(Gtk.Application):
     def __init__(self):
