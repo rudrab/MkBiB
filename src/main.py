@@ -2,6 +2,9 @@ import gi
 import sys
 import menu
 import view
+import pybib
+import urllib.parse as lurl
+import webbrowser
 from gi.repository import Gtk, Gio  # , GLib, Gdk
 gi.require_version("Gtk", "3.0")
 
@@ -16,14 +19,21 @@ class Window(Gtk.ApplicationWindow):
 
         self.TreeView = view.treeview()
         self.MenuElem = menu.MenuManager()
+        self.Parser = pybib.parser()
+        self.name = ""
+        self.set_icon_from_file("mkbib.svg")
         # New Menu
-        action = Gio.SimpleAction(name="save")
-        action.connect("activate", self.MenuElem.file_save_clicked)
+        action = Gio.SimpleAction(name="save-as")
+        action.connect("activate", self.MenuElem.file_save_as_clicked)
         self.add_action(action)
 
         # Open menu
         action = Gio.SimpleAction(name="open")
         action.connect("activate", self.MenuElem.file_open_clicked)
+        self.add_action(action)
+
+        action = Gio.SimpleAction(name="insert")
+        action.connect("activate", self.MenuElem.create_textview)
         self.add_action(action)
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -42,10 +52,13 @@ class Window(Gtk.ApplicationWindow):
 
         self.key_combo = Gtk.ComboBox.new_with_model_and_entry(key_store)
         self.key_combo.set_entry_text_column(1)
+        self.key_combo.connect("changed", self.get_combo_data)
+        self.key_combo.connect("changed", self.activate_button)
 
         # BibTeX Key
         self.KeyEntry = Gtk.Entry()
         self.KeyEntry.set_placeholder_text("BibtexKey")
+        self.KeyEntry.connect("changed", self.activate_button)
 
         #  Generate the  Fields
         self.notebook = Gtk.Notebook()
@@ -56,8 +69,8 @@ class Window(Gtk.ApplicationWindow):
                        "Page", "Address", "Annote", " Booktitle", "Chapter",
                        "Crossred", "Edition", "Editor", "HowPublished",
                        "Institution", "Month", "Note", "Number",
-                       "Organization", "Pages", "Publishers", "School",
-                       "Series", "Type"]
+                       "Organization", "Pages", "School",
+                       "Series", "Type", "Volume"]
         Tabs = ["Essential", "Publishers", "Extra I", "Extra II"]
         for note in range(int(len(self.fields)/6)):
             ypos = 0
@@ -66,6 +79,8 @@ class Window(Gtk.ApplicationWindow):
             self.npage.set_border_width(10)
             maxf = minf+6
             for field in self.fields[minf:maxf]:
+                # print(type(field))
+                # print(field)
                 self.lfield = "L" + field
                 self.lfield = Gtk.Label(field)
                 self.all_fields[field] = Gtk.Entry()
@@ -74,14 +89,18 @@ class Window(Gtk.ApplicationWindow):
                 self.npage.attach_next_to(self.all_fields[field], self.lfield,
                                           Gtk.PositionType.RIGHT, 1, 1)
                 ypos += 1
-
+                # self.all_fields[field].connect("changed", self.activate_scholar)
             self.notebook.append_page(self.npage, Gtk.Label(Tabs[note]))
             minf = maxf
 
+        self.all_fields["Author"].connect("changed", self.activate_scholar)
         # Create the buttons to get data
-        bcreate = Gtk.Button("Create")
-        bcreate.connect("clicked", self.get_data)
-        bsearch = Gtk.Button("Search Google")
+        self.bcreate = Gtk.Button("Create")
+        self.bcreate.set_sensitive(False)
+        self.bcreate.connect("clicked", self.get_data)
+        self.bsearch = Gtk.Button("Search Google")
+        self.bsearch.connect("clicked", self.search_gschol)
+        self.bsearch.set_sensitive(False)
 
         scroll = Gtk.ScrolledWindow()
         scroll.set_hexpand(False)
@@ -93,35 +112,58 @@ class Window(Gtk.ApplicationWindow):
         grid.attach(self.KeyEntry, 8, 0, 4, 2)
         grid.attach(self.notebook, 0, 2, 12, 12)
         grid.attach(scroll, 15, 0, 105, 21)
-        grid.attach(bcreate, 0, 14,  4, 1)
-        grid.attach(bsearch, 8, 14,  4, 1)
+        grid.attach(self.bcreate, 0, 14,  4, 1)
+        grid.attach(self.bsearch, 8, 14,  4, 1)
         box.pack_start(grid, False, False, 0)
         scroll.add(self.TreeView.view)
         self.show_all()
 
-    def get_data(self, widget):
+    def get_combo_data(self, name):
         tree_iter = self.key_combo.get_active_iter()
         if tree_iter is not None:
             model = self.key_combo.get_model()
-            row_id, name = model[tree_iter][:2]
+            row_id, self.name = model[tree_iter][:2]
         else:
             entry = self.key_combo.get_child()
-            name = entry.get_text()
+            self.name = entry.get_text()
+        return(self.name)
 
+    def activate_button(self, widget):
+        if (self.KeyEntry.get_text_length() > 0 and len(self.get_combo_data(self.name)) > 0):
+            self.bcreate.set_sensitive(True)
+        else:
+            self.bcreate.set_sensitive(False)
+
+    def activate_scholar(self, widget):
+        if (len(self.all_fields["Author"].get_text()) > 0):
+            self.bsearch.set_sensitive(True)
+
+    def search_gschol(self, widget):
+        neworder = [3, 0, 2, 1]#, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+        fields = [self.fields[i] for i in neworder]
+        datatup = tuple([self.all_fields[field].get_text() or None
+                         for field in fields])
+        # print(datatup[1])
+        schol = "https://scholar.google.com/scholar?"
+        url = schol+lurl.urlencode({"q" : datatup[1], "ylo" : datatup[3]})
+        webbrowser.open(url, new=2)
+        print(self.all_fields["Author"].get_text())
+
+    def get_data(self, datalist):
         neworder = [3, 0, 2, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12,
                     13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
         fields = [self.fields[i] for i in neworder]
-        datalist = []
-        # datadict = {}
-        datatup = tuple([name] + [self.KeyEntry.get_text()] +
+        datatup = tuple([self.name] + [self.KeyEntry.get_text()] +
                         [self.all_fields[field].get_text() or None
                          for field in fields])
         # print(datatup)
-        # datadict = dict(zip(fields, datatup))
-        # print(datadict)
-        datalist.append(datatup)
-        self.TreeView.viewer(datalist)
-        print(datalist)
+        self.Parser.booklist.clear()
+        self.Parser.booklist.append(datatup)
+        self.TreeView.viewer(self.Parser.booklist)
+        # reset Entries to initial value
+        self.KeyEntry.set_text("")
+        [self.all_fields[field].set_text("") for field in fields]
+
 
 class mkbib(Gtk.Application):
     def __init__(self):

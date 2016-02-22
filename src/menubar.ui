@@ -36,6 +36,11 @@
           <attribute name='accel'>&lt;Primary&gt;s</attribute>
         </item>
         <item>
+          <attribute name='label' translatable='yes'>Save _As</attribute>
+          <attribute name='action'>win.save-as</attribute>
+          <attribute name='accel'>&lt;Shift&gt;&lt;Primary&gt;S</attribute>
+        </item>
+        <item>
           <attribute name='label' translatable='yes'>_Quit</attribute>
           <attribute name='action'>app.quit</attribute>
           <attribute name='accel'>&lt;Primary&gt;q</attribute>

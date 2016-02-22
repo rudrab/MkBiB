@@ -4,6 +4,8 @@ from gi.repository import Gtk
 
 
 class treeview():
+    full_list = []
+    booklist = []
     indxcount = 0
     bookstore = Gtk.ListStore(int, str, str, str, str, str, str, str, str, str,
                               str, str, str, str, str, str, str, str, str, str,
@@ -27,14 +29,23 @@ class treeview():
     def viewer(self, booklist):
         # self.bookstore.clear()
         for ref in booklist:
-            # global indxcount
+            # print(ref)
+            lref= list(ref)
             treeview.indxcount += 1
             lref = list(ref)
+            lref=list(ref)
             lref.insert(0, treeview.indxcount)
             self.bookstore.append(lref)
+            treeview().full_list.append(ref)
         self.current_filter_language = None
-        # print("view working")
+        # print(treeview().full_list)
         # self.view_status = True
+
+    def update_list(self, tuples):
+        self.booklist.append(tuples)
+        print(self.booklist)
+        # self.viewer(self.booklist)
+        # return(self.booklist)
 
     def compare(model, row1, row2, user_data):
         sort_column, _ = model.get_sort_column_id()
