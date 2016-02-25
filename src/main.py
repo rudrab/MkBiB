@@ -5,6 +5,7 @@ import view
 import pybib
 import urllib.parse as lurl
 import webbrowser
+import os
 from gi.repository import Gtk, Gio  # , GLib, Gdk
 gi.require_version("Gtk", "3.0")
 
@@ -21,7 +22,8 @@ class Window(Gtk.ApplicationWindow):
         self.MenuElem = menu.MenuManager()
         self.Parser = pybib.parser()
         self.name = ""
-        self.set_icon_from_file("mkbib.svg")
+        self.set_icon_from_file(os.path.join(
+            os.path.dirname(__file__), 'mkbib.svg'))
         # New Menu
         action = Gio.SimpleAction(name="save-as")
         action.connect("activate", self.MenuElem.file_save_as_clicked)
@@ -137,15 +139,17 @@ class Window(Gtk.ApplicationWindow):
     def activate_scholar(self, widget):
         if (len(self.all_fields["Author"].get_text()) > 0):
             self.bsearch.set_sensitive(True)
+        else:
+            self.bsearch.set_sensitive(False)
 
     def search_gschol(self, widget):
-        neworder = [3, 0, 2, 1]#, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+        neworder = [3, 0, 2, 1]
         fields = [self.fields[i] for i in neworder]
         datatup = tuple([self.all_fields[field].get_text() or None
                          for field in fields])
         # print(datatup[1])
         schol = "https://scholar.google.com/scholar?"
-        url = schol+lurl.urlencode({"q" : datatup[1], "ylo" : datatup[3]})
+        url = schol+lurl.urlencode({"q": datatup[1], "ylo": datatup[3]})
         webbrowser.open(url, new=2)
         print(self.all_fields["Author"].get_text())
 
@@ -204,7 +208,9 @@ class mkbib(Gtk.Application):
         self.add_action(action)
 
         builder = Gtk.Builder()
-        builder.add_from_file("menubar.ui")
+#os.path.join(os.path.dirname(__file__), 'menubar.ui')
+        builder.add_from_file(os.path.join(os.path.dirname
+                                           (__file__), 'menubar.ui'))
         self.set_menubar(builder.get_object("menubar"))
         self.set_app_menu(builder.get_object("app-menu"))
 
