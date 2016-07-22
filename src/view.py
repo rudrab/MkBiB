@@ -43,9 +43,13 @@ class treeview():
                 self.bookstore.append(lref)
                 treeview().full_list.append(ref)
             else:
-                self.bookstore.insert_before(act, lref)
-                indx = int(self.bookstore.get_string_from_iter(act))
-                treeview().full_list[indx] = ref
+                try:
+                    self.bookstore.insert_before(act, lref)
+                    indx = int(self.bookstore.get_string_from_iter(act))
+                    treeview().full_list[indx] = ref
+                except TypeError:
+                    self.bookstore.append(lref)
+                    treeview().full_list[-1] = ref
         self.current_filter_language = None
         print(treeview.full_list)
 
