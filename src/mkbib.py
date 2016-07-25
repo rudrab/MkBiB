@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import gi
 import sys
 import menu
@@ -6,6 +8,11 @@ import pybib
 import urllib.parse as lurl
 import webbrowser
 import os
+import requests
+from urllib.request import urlopen
+import json
+from pprint import pprint
+
 from gi.repository import Gtk, Gio  # , GLib, Gdk
 gi.require_version("Gtk", "3.0")
 
@@ -22,8 +29,8 @@ class Window(Gtk.ApplicationWindow):
         self.MenuElem = menu.MenuManager()
         self.Parser = pybib.parser()
         self.name = ""
-        self.set_icon_from_file(os.path.join(
-            os.path.dirname(__file__), 'mkbib.svg'))
+        # self.set_icon_from_file(os.path.join(
+            # os.path.dirname(__file__), 'mkbib.svg'))
         # New Menu
         action = Gio.SimpleAction(name="save-as")
         action.connect("activate", self.MenuElem.file_save_as_clicked)
@@ -96,12 +103,26 @@ class Window(Gtk.ApplicationWindow):
             minf = maxf
 
         self.all_fields["Author"].connect("changed", self.activate_scholar)
-        # Create the buttons to get data
+
+        # Create button to get data from manual entry
         self.bcreate = Gtk.Button("Create")
         self.bcreate.set_sensitive(False)
         self.bcreate.connect("clicked", self.get_data)
-        self.bsearch = Gtk.Button("Search Google")
-        self.bsearch.connect("clicked", self.search_gschol)
+
+        # Create the buttons to get data
+        # Google/Crossref data fetch
+        api_store = Gtk.ListStore(str)
+        apis = ["==Select search engine==", "Search Google", "Search Crossref"]
+        for api in apis:
+            api_store.append([api])
+        self.bsearch = Gtk.ComboBox.new_with_model(api_store)
+        # self.bsearch = Gtk.Button("Search Google")
+        renderer_text = Gtk.CellRendererText()
+        self.bsearch.pack_start(renderer_text, True)
+        self.bsearch.set_active(0)
+        self.bsearch.add_attribute(renderer_text, "text", 0)
+        # self.bsearch.connect("changed", self.search_gschol)
+        self.bsearch.connect("changed", self.search_gschol)
         self.bsearch.set_sensitive(False)
 
         scroll = Gtk.ScrolledWindow()
@@ -142,16 +163,38 @@ class Window(Gtk.ApplicationWindow):
         else:
             self.bsearch.set_sensitive(False)
 
-    def search_gschol(self, widget):
+    def search_gschol(self, combo):
+        tree_iter = combo.get_active_iter()
+        if tree_iter != None:
+            model = combo.get_model()
+            api_selected=model[tree_iter][0]
+        print(api_selected)
         neworder = [3, 0, 2, 1]
         fields = [self.fields[i] for i in neworder]
         datatup = tuple([self.all_fields[field].get_text() or None
                          for field in fields])
-        # print(datatup[1])
-        schol = "https://scholar.google.com/scholar?"
-        url = schol+lurl.urlencode({"q": datatup[1], "ylo": datatup[3]})
-        webbrowser.open(url, new=2)
-        print(self.all_fields["Author"].get_text())
+        if api_selected == "Search Google":
+            schol = "https://scholar.google.com/scholar?"
+            url = schol+lurl.urlencode({"q": datatup[1], "ylo": datatup[3]})
+            webbrowser.open(url, new=2)
+            print(self.all_fields["Author"].get_text())
+        elif api_selected == "Search Crossref":
+            authorq = "+".join(datatup[1].split()) #datatup[1].replace(" ","+")
+            print(authorq)
+            headers = {'Accept': 'application/x-bibtex; charset=utf-8'}
+            url = "http://api.crossref.org/works?query.author="
+            print(url+authorq)
+            jsonget=(urlopen(url+authorq))
+
+            data = (json.loads(jsonget.read().decode()))
+            # with open("outp","w") as op:
+            # op.write(data)
+            for i in range(len(data["message"]["items"][0])):
+                url=((data["message"]["items"][i]["URL"]))
+                r = requests.get(url, headers=headers)
+                r.encoding = "utf-8"
+                entry = r.text.strip()
+                print(entry)
 
     def get_data(self, datalist):
         neworder = [3, 0, 2, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12,
@@ -177,8 +220,10 @@ class mkbib(Gtk.Application):
 
     def about_activated(self, action, data=None):
         dialog = Gtk.AboutDialog(program_name="mkbib",
-                                 title="About mkbib",
-                                 comments="Not much to say, really.")
+                                 name="About mkbib",
+                                 comments="BibTex manager",
+                                 version="0.1",
+                                 authors=(["Rudra Banerjee"]))
         dialog.run()
         dialog.destroy()
 

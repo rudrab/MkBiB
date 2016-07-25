@@ -51,7 +51,7 @@ class treeview():
                     self.bookstore.append(lref)
                     treeview().full_list[-1] = ref
         self.current_filter_language = None
-        print(treeview.full_list)
+        # print(treeview.full_list)
 
     def row_activated(self, widget, row, col):
         self.row = row

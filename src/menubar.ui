@@ -57,5 +57,15 @@
         </item>
       </section>
     </submenu>
+    <submenu>
+      <attribute name='label' translatable='yes'>_Help</attribute>
+      <section>
+        <item>
+          <attribute name='label' translatable='yes'>_About</attribute>
+          <attribute name='action'>app.about</attribute>
+          <attribute name='accel'>&lt;Primary&gt;h</attribute>
+        </item>
+      </section>
+    </submenu>
   </menu>
 </interface>
