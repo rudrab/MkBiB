@@ -7,7 +7,7 @@ from gi.repository import Gtk
 gi.require_version("Gtk", "3.0")
 
 
-class MenuManager:
+class MenuManager(Gtk.Window):
 
     def __init__(self):
         self.parsing = pybib.parser()
@@ -48,6 +48,7 @@ class MenuManager:
         if response == Gtk.ResponseType.OK:
             filename = dialog.get_filename()
             dialog.destroy()
+            # self.TreeView.indxcount = 0
             del self.TreeView.full_list[:]
             del self.parsing.booklist[:]
             self.TreeView.bookstore.clear()
@@ -56,7 +57,6 @@ class MenuManager:
                 self.parsing.parsing_read(filename)
             self.TreeView.viewer(self.parsing.booklist)
         elif response == Gtk.ResponseType.CANCEL:
-            print("Cancel clicked")
             dialog.destroy()
 
     def file_save_as_clicked(self, SimpleAction, parameter):

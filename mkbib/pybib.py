@@ -26,7 +26,10 @@ class parser():
             tuples = tuple([self.db.entries[i].get(entry)
                             for entry in self.entries])
             self.booklist.append(tuples)
+            self.tupls = tuples
+            # print(str(i))
             # print(tuples)
+        return self.tupls
 
     def parsing_write(self, filename):
         # print(self.booklist)
