@@ -41,16 +41,17 @@ class Window(Gtk.ApplicationWindow):
         headerbar.set_title("MkBiB")
 
         icontheme = Gtk.IconTheme.get_default()
-        self.icon = icontheme.load_icon("mkbib",64,0)
+        self.icon = icontheme.load_icon("mkbib", 64, 0)
 
         # Menu using Gio
         h_grid = Gtk.Grid()
         FileButton = Gtk.MenuButton()
-        EditButton = Gtk.MenuButton(None,image=Gtk.Image(icon_name="list-add-symbolic"))
+        EditButton = Gtk.MenuButton(
+            None, image=Gtk.Image(icon_name="list-add-symbolic"))
         # FileButton = Gtk.MenuButton()
         # FileButton.set_size_request(80, 35)
         # EditButton.set_size_request(40, 35)
-        FileButton.props.label="File"
+        FileButton.props.label = "File"
         # EditButton.props.icon="Edit"
         filemenu = Gio.Menu()
         editmenu = Gio.Menu()
@@ -163,13 +164,13 @@ class Window(Gtk.ApplicationWindow):
         # Create the buttons to get data
         # Google/Crossref data fetch
         api_store = Gtk.ListStore(str)
-        apis = ["==Select search engine==", "Search Google", "Search Crossref"]
+        apis = ["Search Google", "Search Crossref"]
         for api in apis:
             api_store.append([api])
         self.bsearch = Gtk.ComboBox.new_with_model(api_store)
         renderer_text = Gtk.CellRendererText()
         self.bsearch.pack_start(renderer_text, True)
-        self.bsearch.set_active(0)
+        self.bsearch.set_active(-1)
         self.bsearch.add_attribute(renderer_text, "text", 0)
         self.bsearch.connect("changed", self.search_gschol)
         self.bsearch.set_sensitive(False)
@@ -216,9 +217,9 @@ class Window(Gtk.ApplicationWindow):
     def search_gschol(self, combo):
         model = combo.get_model()
         api_selected = combo.get_active()
-        if api_selected == 1:
+        if api_selected == 0:
             self.search_gs()
-        elif api_selected == 2:
+        elif api_selected == 1:
             self.search_cr()
 
     def search_gs(self):
@@ -240,13 +241,11 @@ class Window(Gtk.ApplicationWindow):
         # print(authorq)
         headers = {'Accept': 'application/x-bibtex; charset=utf-8'}
         url = "http://api.crossref.org/works?query.author="
-        # print(url+authorq+"&rows=100")
         jsonget = (urlopen(url+authorq+"&rows=100"))
         data = (json.loads(jsonget.read().decode()))
 
         # First, open a window to dispaly data
         self.crrefwin = Gtk.Window()
-        # Gtk.Window.set_decorated(self.crrefwin, False)
         self.crrefwin.set_default_size(950, 350)
         grid = Gtk.Grid()
         cr_header = Gtk.HeaderBar()
@@ -295,20 +294,19 @@ class Window(Gtk.ApplicationWindow):
             self.cr_liststore.append((api_tups[1:6]))
 
         spinner.stop()
-        self.bsearch.set_active(0)
+        self.bsearch.set_active(-1)
 
     def extract_data_from_cr(self, select_button):
         (model, pathlist) = self.get_selection.get_selected_rows()
-        for path in pathlist :
+        for path in pathlist:
             tree_iter = model.get_iter(path)
-            value = model.get_value(tree_iter,0)
+            value = model.get_value(tree_iter, 0)
             print(type(self.cr_entry[value]))
             text = io.StringIO(self.cr_entry[value])
             del self.Parser.booklist[:]
             self.Parser.parsing_read(text)
             self.TreeView.viewer(self.Parser.booklist)
         self.crrefwin.destroy()
-
 
     def get_data(self, datalist):
         neworder = [3, 0, 2, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12,
@@ -332,12 +330,14 @@ class Window(Gtk.ApplicationWindow):
                                  name="About MkBiB",
                                  comments=comments,
                                  version="0.1",
-                                 copyright = copyright,
+                                 copyright=copyright,
                                  license_type=Gtk.License.GPL_3_0,
-                                 authors=(["Rudra Banerjee"]))
+                                 authors=(["Rudra Banerjee"]),
+                                 website="https://github.com/rudrab/mkbib")
         # dialog.set_transient(Window)
         dialog.set_logo(GdkPixbuf.Pixbuf.new_from_file_at_size(
-            "/home/rudra/Devel/Icons/shadow/scalable/apps/mkbib.svg", 128,128))
+            "/home/rudra/Devel/Icons/shadow/scalable/apps/mkbib.svg", 128, 128)
+        )
         dialog.run()
         dialog.destroy()
 
@@ -376,7 +376,6 @@ class mkbib(Gtk.Application):
         action.connect("activate", lambda a, b: self.activate())
         self.add_action(action)
 
-
         action = Gio.SimpleAction(name="about")
         action.connect("activate", Window.about_activated)
         self.add_action(action)
@@ -392,10 +391,11 @@ class mkbib(Gtk.Application):
         # self.set_menubar(builder.get_object("menubar"))
         self.set_app_menu(builder.get_object("app-menu"))
 
-        self.set_accels_for_action("win.about",["<Ctrl>h"])
-        self.set_accels_for_action("win.open",["<Ctrl>o"])
-        self.set_accels_for_action("win.edit",["<Ctrl>I"])
-        self.set_accels_for_action("win.save",["<Ctrl>s"])
+        self.set_accels_for_action("win.about", ["<Ctrl>h"])
+        self.set_accels_for_action("win.open", ["<Ctrl>o"])
+        self.set_accels_for_action("win.edit", ["<Ctrl>I"])
+        self.set_accels_for_action("win.save", ["<Ctrl>s"])
+
 
 def install_excepthook():
     """ Make sure we exit when an unhandled exception occurs. """

@@ -15,7 +15,7 @@ class parser():
                         "booktitle", "chapter", "crossred", "edition",
                         "editor", "howpublished", "institution", "month",
                         "note", "number", "organization", "pages",
-                        "school", "series", "type", "volume"]
+                        "school", "series", "type", "volume", "doi"]
 
     def parsing_read(self, bibfile):
         # with open(filename) as bibtex_file:
