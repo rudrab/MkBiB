@@ -1,30 +1,10 @@
 import gi
-gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
+from gi.repository import GdkPixbuf
+gi.require_version('Gtk', '3.0')
 
 class MessageDialog(Gtk.Window):
 
-    # def __init__(self):
-        # Gtk.Window.__init__(self, title="MessageDialog Example")
-
-        # box = Gtk.Box(spacing=6)
-        # self.add(box)
-
-        # button1 = Gtk.Button("Information")
-        # button1.connect("clicked", self.on_info_clicked)
-        # box.add(button1)
-
-        # button2 = Gtk.Button("Error")
-        # button2.connect("clicked", self.on_error_clicked)
-        # box.add(button2)
-
-        # button3 = Gtk.Button("Warning")
-        # button3.connect("clicked", self.on_warn_clicked)
-        # box.add(button3)
-
-        # button4 = Gtk.Button("Question")
-        # button4.connect("clicked", self.on_question_clicked)
-        # box.add(button4)
 
     def on_info_clicked(self, widget):
         dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.INFO,
@@ -63,13 +43,56 @@ class MessageDialog(Gtk.Window):
 
         dialog.destroy()
 
-class PopWindow():
-    def popup(self):
-        self.popup = Gtk.Window()
-        self.popup.set_border_width(2)
-        self.popheader = Gtk.HeaderBar()
-        self.popup.set_titlebar(self.popheader)
-        # popheader.set_title(indx)
-        self.popup.set_default_size(450, 550)
-        self.popheader.set_show_close_button(True)
+    def about_activated(self, action, data=None):
+        copyright = "Copyright \u00a9 2016- - Rudra Banerjee"
+        comments = "BiBTeX Manager"
+        dialog = Gtk.AboutDialog(program_name="MkBiB", transient_for=self,
+                                 name="About MkBiB",
+                                 comments=comments,
+                                 version="0.1",
+                                 copyright=copyright,
+                                 license_type=Gtk.License.GPL_3_0,
+                                 authors=(["Rudra Banerjee"]),
+                                 website="https://github.com/rudrab/mkbib")
+        # dialog.set_transient(Window)
+        dialog.set_logo(GdkPixbuf.Pixbuf.new_from_file_at_size(
+            "/home/rudra/Devel/Icons/shadow/scalable/apps/mkbib.svg", 128, 128)
+        )
+        dialog.run()
+        dialog.destroy()
 
+# class PopWindow():
+#     def popup(self):
+#         self.popup = Gtk.Window()
+#         self.popup.set_border_width(2)
+#         self.popheader = Gtk.HeaderBar()
+#         self.popup.set_titlebar(self.popheader)
+#         # popheader.set_title(indx)
+#         self.popup.set_default_size(450, 550)
+#         self.popheader.set_show_close_button(True)
+
+
+
+class FileDialog(Gtk.Window):
+    # File Chooser
+    # Open, Save
+    def FileChooser(self, header, action):
+        self.path = None
+        self.dialog = Gtk.FileChooserDialog(header[0], self,
+                                       action,
+                                       (Gtk.STOCK_CANCEL,
+                                        Gtk.ResponseType.CANCEL,
+                                        Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+        filter = Gtk.FileFilter()
+        filter.set_name(header[1])
+        filter.add_pattern(header[2])
+        self.dialog.add_filter(filter)
+        filter = Gtk.FileFilter()
+        filter.set_name("All Files")
+        filter.add_pattern("*")
+        self.dialog.add_filter(filter)
+
+        self.response = self.dialog.run()
+
+def close_window(self, widget):
+    widget.destroy()

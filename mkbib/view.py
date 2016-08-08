@@ -2,30 +2,39 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 import cell
+import dialogue
+import filemanager
+import os
+from gi.repository import GdkPixbuf
 
 class treeview():
+    row_num = 0
     full_list = []
     booklist = []
     indxcount = 0
     bookstore = Gtk.ListStore(int, str, str, str, str, str, str, str, str, str,
                               str, str, str, str, str, str, str, str, str, str,
-                              str, str, str, str, str, str, str, str)
+                              str, str, str, str, str, str, str, str, str)
     viewstore = Gtk.ListStore(str, str)
     entries = ["Type", "Id", "Title", "Author", "Journal", "Year", "Publisher",
                "Page", "Address", "Annote", "Booktitle", "Chapter", "Crossred",
                "Edition", "Editor", "Howpublished", "Institution", "Month",
                "Note", "Number", "Organization", "Pages", "School", "Series",
-               "Type", "Volume", "DOI"]
+               "Type", "Volume", "DOI", "File"]
 
     def __init__(self):
+        self.indx = 0
         self.cell = cell.cell_renderer()
         self.view = Gtk.TreeView(model=self.bookstore)
+        self.Dialog = dialogue.FileDialog()
+        self.Files = filemanager.file_manager()
+
 # Put all crc edit inside this block
+
         liststore_props = Gtk.ListStore(str)
-        props = ["Open", "Edit", "Webpage","Delete"]
+        props = ["Open", "Edit", "Webpage","Delete", "Open Document"]
         for item in props:
             liststore_props.append([item])
-
         renderer_combo = Gtk.CellRendererCombo()
         renderer_combo.set_property("editable", True)
         renderer_combo.set_property("model", liststore_props)
@@ -33,7 +42,12 @@ class treeview():
         renderer_combo.set_property("has-entry", False)
         renderer_combo.connect("edited", self.on_combo_changed)
         column_combo = Gtk.TreeViewColumn("Index", renderer_combo, text=0)
+        arrow_renderer = Gtk.CellRendererPixbuf()
+        arrow_renderer.set_property("icon-name", "list-add-symbolic")
+        column_combo.pack_start(arrow_renderer, False)
         self.view.append_column(column_combo)
+        # column_combo.connect("clicked", self.on_combo_changed)
+
 # This is crc block
 
         for i, column_title in enumerate(["Type", "Key", "Title",
@@ -45,18 +59,23 @@ class treeview():
             renderer.set_property("wrap-mode", 0)
             column = Gtk.TreeViewColumn(column_title, renderer, text=i+1)
             self.view.append_column(column)
-            # column.clear()
             for cid in range(0, 6):
                 column.set_sort_column_id(cid)
-        self.view.connect("row-activated", self.row_activated)
+        # self.view.connect("row-activated", self.row_activated)
 
     def on_combo_changed(self, widget, path, text):
-        self.bookstore[path][7] = text
-        self.cell.row_activated(self.view, str(int(self.bookstore[path][0])-1), 0)
+        # self.bookstore[path][7] = text
+        (model, path) =self.view.get_selection().get_selected_rows()
+        tree_iter = model.get_iter(path)
+        combo_indx = model.get_value(tree_iter,0)
+        self.cell.row_activated(self.view, str(combo_indx), 0)
         if text == "Open":
             self.cell.open_from_renderer()
         elif text == "Edit":
-            self.row_activated(self.view, str(int(self.bookstore[path][0])-1), 0)
+            self.edit_clicked(self.view, str(combo_indx), 0)
+        elif text == "Open Document":
+            self.row_activated(self.view, str(combo_indx), 0)
+            self.Files.open_file(os.path.basename(self.cell.doc))
         elif text == "Delete":
             (model, iter) = self.view.get_selection().get_selected()
             self.bookstore.remove(iter)
@@ -67,35 +86,42 @@ class treeview():
     def viewer(self, booklist, act=-1):
         for ref in booklist:
             lref = list(ref)
-            treeview.indxcount += 1
-            lref = list(ref)
-            lref.insert(0, (treeview.indxcount))
-
+            # print(act)
             if act == -1:
+                lref.insert(0, len(self.bookstore))
                 self.bookstore.append(lref)
                 treeview().full_list.append(ref)
+                treeview.row_num = len(self.bookstore)
             else:
                 try:
-                    self.bookstore.insert_before(act, lref)
-                    indx = int(self.bookstore.get_string_from_iter(act))
-                    treeview().full_list[indx] = ref
+                    lref.insert(0, self.indx)
+                    self.bookstore.insert(self.indx, lref)
+                    treeview().full_list[self.indx] = ref
+                    # print(treeview().full_list[:])
                 except TypeError:
                     self.bookstore.append(lref)
                     treeview().full_list[-1] = ref
-
         self.current_filter_language = None
-        # print(treeview.full_list)
 
+        return treeview.row_num
 
     def row_activated(self, widget, row, col):
         self.row = row
-        model = widget.get_model()
-        indx = str(model[row][0])
+        (model, path) =widget.get_selection().get_selected_rows()
+        tree_iter = model.get_iter(path)
+        self.indx = model.get_value(tree_iter,0)
         slist = list(zip(self.entries, model[row][1:]))
-        self.retrieve_treeview(slist, indx)
         # print(slist[-1][-1])
         # self.treeview.remove(row)
         return True
+
+    def edit_clicked(self, widget, row, col):
+        self.row = row
+        (model, path) =widget.get_selection().get_selected_rows()
+        tree_iter = model.get_iter(path)
+        self.indx = model.get_value(tree_iter,0)
+        slist = list(zip(self.entries, model[row][1:]))
+        self.retrieve_treeview(slist)
 
     def update_list(self, tuples):
         self.booklist.append(tuples)
@@ -113,12 +139,12 @@ class treeview():
         else:
             return 1
 
-    def retrieve_treeview(self, slist, indx):
+    def retrieve_treeview(self, slist):
         self.popup = Gtk.Window()
         self.popup.set_border_width(2)
         popheader = Gtk.HeaderBar()
         self.popup.set_titlebar(popheader)
-        popheader.set_title(indx)
+        popheader.set_title(str(self.indx))
         self.popup.set_default_size(450, 550)
         popheader.set_show_close_button(True)
         spinner = Gtk.Spinner()
@@ -134,7 +160,7 @@ class treeview():
         self.updater.set_sensitive(False)
         tview = Gtk.TreeView(model=self.viewstore)
         self.viewstore.clear()
-        for i, viewcol in enumerate(["Key", "Value"]):
+        for i, viewcol in enumerate(["Field", "Value"]):
             vrenderer = Gtk.CellRendererText()
             if i == 1:
                 vrenderer.set_property("wrap-width", 300)
@@ -143,21 +169,29 @@ class treeview():
             tview.append_column(vcolumn)
         vrenderer.connect("edited", self.val_edited)
         self.slist = slist
-        # del slist
         for keyval in self.slist:
             self.viewstore.append(list(keyval))
+        file_button = Gtk.Button("Add File")
+        file_button.connect("clicked", self.insert_file_val)
         scrolw.add(tview)
-        grid.attach(scrolw, 0,  0, 10, 10)
-        grid.attach(self.updater, 0, 11, 10,  1)
+        grid.attach(scrolw, 0,  0, 2, 1)
+        grid.attach(self.updater, 0, 1, 1,  1)
+        grid.attach(file_button, 1, 1, 1,  1)
         self.popup.add(grid)
         self.popup.show_all()
 
+    def insert_file_val(self, widget):
+        self.cell.file_attach_cb()
+        self.val_list = [i[1] for i in self.slist]
+        self.Files.move_file(self.cell.file_name,self.val_list)
+        self.viewstore[-1][1] = os.path.basename(self.Files.destin)
+        self.val_list[-1] = os.path.basename(self.Files.destin)
+        self.updater.set_sensitive(True)
+
     def val_edited(self, widget, path, text):
         self.viewstore[path][1] = text
-        # print("TexT"+text)
         self.val_list = [i[1] for i in self.slist]
         self.val_list[int(path)] = text
-        # print(self.val_list)
         self.updater.set_sensitive(True)
 
     def edit_and_save_buffer(self, widget):

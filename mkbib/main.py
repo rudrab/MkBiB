@@ -3,8 +3,11 @@
 import gi
 import sys
 import menu
+import math
 import view
 import pybib
+import dialogue
+import filemanager
 import urllib.parse as lurl
 import webbrowser
 import os
@@ -13,7 +16,6 @@ from urllib.request import urlopen
 import json
 from pprint import pprint
 import io
-from gi.repository import GdkPixbuf
 from gi.repository import Gtk, Gio  # , GLib, Gdk
 gi.require_version("Gtk", "3.0")
 
@@ -24,12 +26,16 @@ class Window(Gtk.ApplicationWindow):
                                        application=application,
                                        default_width=1000,
                                        default_height=200,
-                                       title="mkbib")
+                                       border_width=5)
+
 
         # Import other files
         self.TreeView = view.treeview()
         self.MenuElem = menu.MenuManager()
         self.Parser = pybib.parser()
+        self.Dialog = dialogue.FileDialog()
+        self.Messages = dialogue.MessageDialog()
+        self.Files = filemanager.file_manager()
 
         #
         # Create HeaderBar and manu
@@ -38,7 +44,10 @@ class Window(Gtk.ApplicationWindow):
         headerbar.set_show_close_button(True)
         # menuicon = Gtk.Image.new_from_icon_name("mkbib-symbolic", 32);
         # Gtk.HeaderBar.pack_start(headerbar,menuicon);
-        headerbar.set_title("MkBiB")
+
+        # global main_header
+        main_header = "MkBiB"
+        headerbar.set_title(main_header)
 
         icontheme = Gtk.IconTheme.get_default()
         self.icon = icontheme.load_icon("mkbib", 64, 0)
@@ -48,11 +57,7 @@ class Window(Gtk.ApplicationWindow):
         FileButton = Gtk.MenuButton()
         EditButton = Gtk.MenuButton(
             None, image=Gtk.Image(icon_name="list-add-symbolic"))
-        # FileButton = Gtk.MenuButton()
-        # FileButton.set_size_request(80, 35)
-        # EditButton.set_size_request(40, 35)
         FileButton.props.label = "File"
-        # EditButton.props.icon="Edit"
         filemenu = Gio.Menu()
         editmenu = Gio.Menu()
         filemenu.append("Open", "win.open")
@@ -60,7 +65,7 @@ class Window(Gtk.ApplicationWindow):
         filemenu.append("Save", "app.save")
         filemenu.append("Quit", "app.quit")
         # menumodel.append_submenu("File", filemenu)
-        editmenu.append("Edit", "win.edit")
+        editmenu.append("Copy BiBTeX", "win.edit")
         # menumodel.append("Help", "win.about")
         h_grid.attach(FileButton, 0, 0, 3, 1)
         h_grid.attach(EditButton, 3, 0, 1, 1)
@@ -70,7 +75,7 @@ class Window(Gtk.ApplicationWindow):
         # headerbar.pack_start(EditButton)
 
         about_action = Gio.SimpleAction.new("about", None)
-        about_action.connect("activate", Window.about_activated)
+        about_action.connect("activate", self.Messages.about_activated)
         self.add_action(about_action)
 
         # accelgroup=Gtk.AccelGroup()
@@ -129,19 +134,18 @@ class Window(Gtk.ApplicationWindow):
                        "Crossred", "Edition", "Editor", "HowPublished",
                        "Institution", "Month", "Note", "Number",
                        "Organization", "Pages", "School",
-                       "Series", "Type", "Volume"]
-        Tabs = ["Essential", "Publishers", "Extra I", "Extra II"]
-        for note in range(int(len(self.fields)/6)):
+                       "Series", "Type", "Volume", "DOI", "OPTFile"]
+        Tabs = ["Essential", "Publishers", "Extra I", "Extra II", "Extra III"]
+        for note in range(math.ceil(len(self.fields)/6)):
             ypos = 0
             self.npage = "page"+str(note)
             self.npage = Gtk.Grid()
             self.npage.set_border_width(10)
             maxf = minf+6
             for field in self.fields[minf:maxf]:
-                # print(type(field))
-                # print(field)
                 self.lfield = "L" + field
                 self.lfield = Gtk.Label(field)
+                self.lfield.set_xalign(0)
                 self.all_fields[field] = Gtk.Entry()
                 self.all_fields[field].set_placeholder_text(field)
                 self.npage.attach(self.lfield, xpos, ypos, 1, 1)
@@ -153,6 +157,9 @@ class Window(Gtk.ApplicationWindow):
                 #   self.activate_scholar)
             self.notebook.append_page(self.npage, Gtk.Label(Tabs[note]))
             minf = maxf
+            pdf_load_button = Gtk.Button(image=Gtk.Image(icon_name="list-add-symbolic"))
+            pdf_load_button.connect("clicked", self.file_attach_cb)
+        self.npage.attach_next_to(pdf_load_button, self.all_fields["OPTFile"], Gtk.PositionType.RIGHT, 2, 1)
 
         self.all_fields["Author"].connect("changed", self.activate_scholar)
 
@@ -190,6 +197,16 @@ class Window(Gtk.ApplicationWindow):
         box.pack_start(grid, False, False, 0)
         scroll.add(self.TreeView.view)
         self.show_all()
+
+    def file_attach_cb(self, name):
+        self.Dialog.FileChooser(["Open Pdf file", "PDF File", "*.pdf"])
+        if self.Dialog.response == Gtk.ResponseType.OK:
+            self.path = self.Dialog.dialog.get_filename()
+            self.all_fields["File"].set_text(self.path)
+            self.Dialog.dialog.destroy()
+        elif self.Dialog.response == Gtk.ResponseType.CANCEL:
+            self.Dialog.dialog.destroy()
+
 
     def get_combo_data(self, name):
         tree_iter = self.key_combo.get_active_iter()
@@ -238,14 +255,12 @@ class Window(Gtk.ApplicationWindow):
         datatup = tuple([self.all_fields[field].get_text() or None
                         for field in fields])
         authorq = "+".join(datatup[1].split())
-        # print(authorq)
         headers = {'Accept': 'application/x-bibtex; charset=utf-8'}
         url = "http://api.crossref.org/works?query.author="
-        jsonget = (urlopen(url+authorq+"&rows=100"))
+        jsonget = (urlopen(url+authorq+"&rows=50"))
         data = (json.loads(jsonget.read().decode()))
 
-        # First, open a window to dispaly data
-        self.crrefwin = Gtk.Window()
+        self.crrefwin = Gtk.Window(border_width=5)
         self.crrefwin.set_default_size(950, 350)
         grid = Gtk.Grid()
         cr_header = Gtk.HeaderBar()
@@ -264,6 +279,8 @@ class Window(Gtk.ApplicationWindow):
             column = Gtk.TreeViewColumn(column_title, renderer, text=i)
             self.treeview.append_column(column)
             renderer.set_property("wrap-width", 300)
+            if i > 2:
+                renderer.set_property("wrap-width", 150)
             renderer.set_property("wrap-mode", 0)
 
         self.get_selection = self.treeview.get_selection()
@@ -292,7 +309,6 @@ class Window(Gtk.ApplicationWindow):
                             (io.StringIO(r.text.strip())))
             api_tups[1] = i
             self.cr_liststore.append((api_tups[1:6]))
-
         spinner.stop()
         self.bsearch.set_active(-1)
 
@@ -301,16 +317,18 @@ class Window(Gtk.ApplicationWindow):
         for path in pathlist:
             tree_iter = model.get_iter(path)
             value = model.get_value(tree_iter, 0)
-            print(type(self.cr_entry[value]))
             text = io.StringIO(self.cr_entry[value])
             del self.Parser.booklist[:]
             self.Parser.parsing_read(text)
-            self.TreeView.viewer(self.Parser.booklist)
+            biblst= [list(elem) for elem in self.Parser.booklist]
+            biblst[0].insert(0, self.TreeView.row_num)
+            self.TreeView.bookstore.append(biblst[0])
         self.crrefwin.destroy()
+        text.close()
 
     def get_data(self, datalist):
         neworder = [3, 0, 2, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-                    13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+                    13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
         fields = [self.fields[i] for i in neworder]
         datatup = tuple([self.name] + [self.KeyEntry.get_text()] +
                         [self.all_fields[field].get_text() or None
@@ -323,24 +341,6 @@ class Window(Gtk.ApplicationWindow):
         self.KeyEntry.set_text("")
         [self.all_fields[field].set_text("") for field in fields]
 
-    def about_activated(action, data=None):
-        copyright = "Copyright \u00a9 2016- - Rudra Banerjee"
-        comments = "BiBTeX Manager"
-        dialog = Gtk.AboutDialog(program_name="MkBiB",
-                                 name="About MkBiB",
-                                 comments=comments,
-                                 version="0.1",
-                                 copyright=copyright,
-                                 license_type=Gtk.License.GPL_3_0,
-                                 authors=(["Rudra Banerjee"]),
-                                 website="https://github.com/rudrab/mkbib")
-        # dialog.set_transient(Window)
-        dialog.set_logo(GdkPixbuf.Pixbuf.new_from_file_at_size(
-            "/home/rudra/Devel/Icons/shadow/scalable/apps/mkbib.svg", 128, 128)
-        )
-        dialog.run()
-        dialog.destroy()
-
 
 class mkbib(Gtk.Application):
     def __init__(self):
@@ -348,22 +348,13 @@ class mkbib(Gtk.Application):
         self.connect("startup", self.startup)
         self.connect("activate", self.activate)
 
-    # def about_activated(self, action, data=None):
-        # dialog = Gtk.AboutDialog(program_name="mkbib",
-                                 # name="About mkbib",
-                                 # comments="BibTex manager",
-                                 # version="0.1",
-                                 # authors=(["Rudra Banerjee"]))
-        # dialog.run()
-        # dialog.destroy()
-
+        self.Messages = dialogue.MessageDialog()
+        self.Files = filemanager.file_manager()
+        self.Files.chk_rootdir()
     def new_window(self, filename=None):
         window = Window(self, filename)
         window.show()
 
-#     def open(self, application, files, n_files, hint):
-#         for giofile in files:
-#             self.new_window(self, giofile)
 
     def activate(self, data=None):
         self.new_window()
@@ -377,7 +368,7 @@ class mkbib(Gtk.Application):
         self.add_action(action)
 
         action = Gio.SimpleAction(name="about")
-        action.connect("activate", Window.about_activated)
+        action.connect("activate", self.Messages.about_activated)
         self.add_action(action)
 
         action = Gio.SimpleAction(name="quit")
@@ -388,13 +379,12 @@ class mkbib(Gtk.Application):
         builder.add_from_file(os.path.join(os.path.dirname
                                            (__file__), '../data/menubar.ui'))
 
-        # self.set_menubar(builder.get_object("menubar"))
         self.set_app_menu(builder.get_object("app-menu"))
 
-        self.set_accels_for_action("win.about", ["<Ctrl>h"])
-        self.set_accels_for_action("win.open", ["<Ctrl>o"])
-        self.set_accels_for_action("win.edit", ["<Ctrl>I"])
-        self.set_accels_for_action("win.save", ["<Ctrl>s"])
+        self.set_accels_for_action("win.about", ["<Primary>h"])
+        self.set_accels_for_action("win.open", ["<Primary>o"])
+        self.set_accels_for_action("win.edit", ["<Primary>I"])
+        self.set_accels_for_action("win.save", ["<Primary>s"])
 
 
 def install_excepthook():
