@@ -2,7 +2,7 @@ import bibtexparser
 from bibtexparser.bparser import BibTexParser
 from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
-import view
+import Mkbib.view as view
 
 
 class parser():
@@ -41,7 +41,6 @@ class parser():
             datadict = dict((k, v) for k, v in
                             zip(self.entries, ref) if v is not None)
             datalist.append(datadict)
-        # print(datalist)
         self.db.entries = datalist
         with open(filename, 'w') as bibfile:
             bibfile.write(writer.write(self.db))

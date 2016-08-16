@@ -18,7 +18,7 @@ class MessageDialog(Gtk.Window):
 
     def on_error_clicked(self, err_str1, err_str2):
         dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.ERROR,
-            Gtk.ButtonsType.CANCEL, err_str1)
+            Gtk.ButtonsType.OK, err_str1)
         dialog.format_secondary_text(err_str2)
         dialog.run()
         dialog.destroy()
@@ -76,13 +76,13 @@ class MessageDialog(Gtk.Window):
 class FileDialog(Gtk.Window):
     # File Chooser
     # Open, Save
-    def FileChooser(self, header, action):
+    def FileChooser(self, header, action,act_button):
         self.path = None
         self.dialog = Gtk.FileChooserDialog(header[0], self,
                                        action,
                                        (Gtk.STOCK_CANCEL,
                                         Gtk.ResponseType.CANCEL,
-                                        Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+                                        act_button, Gtk.ResponseType.OK))
         filter = Gtk.FileFilter()
         filter.set_name(header[1])
         filter.add_pattern(header[2])

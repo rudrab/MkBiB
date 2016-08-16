@@ -1,13 +1,14 @@
 #!/usr/bin/python3
-
 import gi
 import sys
-import menu
+import Mkbib.menu as menu
 import math
-import view
-import pybib
-import dialogue
-import filemanager
+import Mkbib.view as view
+import Mkbib.pybib as pybib
+import Mkbib.dialogue as dialogue
+import Mkbib.filemanager as filemanager
+import Mkbib.cell as cell
+import Mkbib.getdata as getdata
 import urllib.parse as lurl
 import webbrowser
 import os
@@ -16,8 +17,9 @@ from urllib.request import urlopen
 import json
 from pprint import pprint
 import io
-from gi.repository import Gtk, Gio  # , GLib, Gdk
+import time
 gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, Gio, Gdk
 
 
 class Window(Gtk.ApplicationWindow):
@@ -28,7 +30,6 @@ class Window(Gtk.ApplicationWindow):
                                        default_height=200,
                                        border_width=5)
 
-
         # Import other files
         self.TreeView = view.treeview()
         self.MenuElem = menu.MenuManager()
@@ -36,18 +37,19 @@ class Window(Gtk.ApplicationWindow):
         self.Dialog = dialogue.FileDialog()
         self.Messages = dialogue.MessageDialog()
         self.Files = filemanager.file_manager()
-
+        self.Datas = getdata.data()
+        self.Cell  = cell.cell_renderer()
         #
         # Create HeaderBar and manu
-        headerbar = Gtk.HeaderBar()
-        self.set_titlebar(headerbar)
-        headerbar.set_show_close_button(True)
+        self.headerbar = Gtk.HeaderBar()
+        self.set_titlebar(self.headerbar)
+        self.headerbar.set_show_close_button(True)
         # menuicon = Gtk.Image.new_from_icon_name("mkbib-symbolic", 32);
         # Gtk.HeaderBar.pack_start(headerbar,menuicon);
 
         # global main_header
-        main_header = "MkBiB"
-        headerbar.set_title(main_header)
+        self.main_header = "MkBiB"
+        self.headerbar.set_title(self.main_header)
 
         icontheme = Gtk.IconTheme.get_default()
         self.icon = icontheme.load_icon("mkbib", 64, 0)
@@ -71,7 +73,7 @@ class Window(Gtk.ApplicationWindow):
         h_grid.attach(EditButton, 3, 0, 1, 1)
         FileButton.set_menu_model(filemenu)
         EditButton.set_menu_model(editmenu)
-        headerbar.pack_start(h_grid)
+        self.headerbar.pack_start(h_grid)
         # headerbar.pack_start(EditButton)
 
         about_action = Gio.SimpleAction.new("about", None)
@@ -83,25 +85,25 @@ class Window(Gtk.ApplicationWindow):
 
         # Menu (Stable)
         action = Gio.SimpleAction(name="save-as")
-        action.connect("activate", self.MenuElem.file_save_as_clicked)
+        action.connect("activate", self.file_save_as_clicked)
         self.add_action(action)
 
         # Open menu
         open_action = Gio.SimpleAction(name="open")
-        open_action.connect("activate", self.MenuElem.file_open_clicked)
+        open_action.connect("activate", self.file_open_clicked)
         self.add_action(open_action)
 
         action = Gio.SimpleAction(name="edit")
         action.connect("activate", self.MenuElem.create_textview)
         self.add_action(action)
 
-        # Add accel
-        # accel_group = Gtk.AccelGroup()
-        # self.add_accel_group(accel_group)
-        # open_action.add_accelerator("activate", accel_group, ord("O"))
+        # Statusbar
+        self.Files.chk_rootdir()
+        self.status = Gtk.Statusbar()
+        self.context = self.status.get_context_id("example")
+        self.status.push(self.context, self.Files.root_status)
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        # box.pack_start(MenuElem.menubar, False, False, 0)
         self.add(box)
         self.TreeView = view.treeview()
 
@@ -130,11 +132,13 @@ class Window(Gtk.ApplicationWindow):
         minf = 0
         self.all_fields = dict()
         self.fields = ["Author",  "Year",  "Journal", "Title", "Publisher",
-                       "Page", "Address", "Annote", " Booktitle", "Chapter",
+                       "Page", "Address", "Annote", "Booktitle", "Chapter",
                        "Crossred", "Edition", "Editor", "HowPublished",
                        "Institution", "Month", "Note", "Number",
                        "Organization", "Pages", "School",
-                       "Series", "Type", "Volume", "DOI", "OPTFile"]
+                       "Series", "Type", "Volume", "DOI", "File"]
+        # self.fields = self.Parser.entries
+        # self.fields = [item.capitalize() for item in self.fields]
         Tabs = ["Essential", "Publishers", "Extra I", "Extra II", "Extra III"]
         for note in range(math.ceil(len(self.fields)/6)):
             ypos = 0
@@ -157,27 +161,39 @@ class Window(Gtk.ApplicationWindow):
                 #   self.activate_scholar)
             self.notebook.append_page(self.npage, Gtk.Label(Tabs[note]))
             minf = maxf
-            pdf_load_button = Gtk.Button(image=Gtk.Image(icon_name="list-add-symbolic"))
+            pdf_load_button = Gtk.Button(image=Gtk.Image(
+                icon_name="list-add-symbolic"))
             pdf_load_button.connect("clicked", self.file_attach_cb)
-        self.npage.attach_next_to(pdf_load_button, self.all_fields["OPTFile"], Gtk.PositionType.RIGHT, 2, 1)
+        self.npage.attach_next_to(pdf_load_button, self.all_fields["File"],
+                                  Gtk.PositionType.RIGHT, 2, 1)
+
+        # Set tooltip for searchable entries
+        self.all_fields["Author"].set_tooltip_text("Search with Google or CrossRef")
+        self.all_fields["Year"].set_tooltip_text("Refine Author search with Google")
+        self.all_fields["Title"].set_tooltip_text("Search by Title")
+        self.all_fields["DOI"].set_tooltip_text("Search DOI")
 
         self.all_fields["Author"].connect("changed", self.activate_scholar)
+        self.all_fields["DOI"].connect("changed", self.activate_scholar)
+        self.all_fields["Title"].connect("changed", self.activate_scholar)
+        self.all_fields["File"].connect("changed", self.activate_scholar)
 
         # Create button to get data from manual entry
-        self.bcreate = Gtk.Button("Create")
+        self.bcreate = Gtk.Button("Create Manually")
         self.bcreate.set_sensitive(False)
         self.bcreate.connect("clicked", self.get_data)
 
         # Create the buttons to get data
         # Google/Crossref data fetch
         api_store = Gtk.ListStore(str)
-        apis = ["Search Google", "Search Crossref"]
+        apis = ["Search", "Search Google", "Search Crossref",
+                "Search DOI", "Search by Title", "From PDF"]
         for api in apis:
             api_store.append([api])
         self.bsearch = Gtk.ComboBox.new_with_model(api_store)
         renderer_text = Gtk.CellRendererText()
         self.bsearch.pack_start(renderer_text, True)
-        self.bsearch.set_active(-1)
+        self.bsearch.set_active(0)
         self.bsearch.add_attribute(renderer_text, "text", 0)
         self.bsearch.connect("changed", self.search_gschol)
         self.bsearch.set_sensitive(False)
@@ -186,20 +202,72 @@ class Window(Gtk.ApplicationWindow):
         scroll.set_hexpand(False)
         scroll.set_vexpand(True)
 
+        # self.overlay = Gtk.Overlay()
+        # self.overlay.add(scroll)
+        # self.box = Gtk.Box()
+        # self.box.override_background_color(Gtk.StateType.NORMAL,
+                                           # Gdk.RGBA(.5,.5,.5, 1))
+        # self.box.pack_start(self.status, True, True, 0)
+        # self.box.set_valign(Gtk.Align.END)
+        # self.overlay.add_overlay(self.box)
         grid = Gtk.Grid()
         grid.set_column_spacing(10)
-        grid.attach(self.key_combo, 0, 0, 4, 2)
-        grid.attach(self.KeyEntry, 4, 0, 4, 2)
-        grid.attach(self.notebook, 0, 2, 8, 12)
-        grid.attach(scroll, 15, 0, 105, 15)
-        grid.attach(self.bcreate, 0, 14,  4, 1)
-        grid.attach(self.bsearch, 4, 14,  4, 1)
+        grid.attach(self.key_combo, 0, 0, 1, 1)
+        grid.attach(self.KeyEntry, 1, 0, 1, 1)
+        # grid.attach(self.status, 0, 3, 20, 1)
+        grid.attach(self.notebook, 0, 1, 2, 1)
+        grid.attach(scroll, 2, 0, 105, 4)
+        grid.attach(self.bcreate, 0, 2,  1, 1)
+        grid.attach(self.bsearch, 1, 2,  1, 1)
         box.pack_start(grid, False, False, 0)
         scroll.add(self.TreeView.view)
+        # self.overlay.show_all()
         self.show_all()
 
+    def file_open_clicked(self, name, action):
+        self.Dialog.FileChooser(["Open Existing BiBTeX File",
+                                 "BiBTeX File", "*.bib"],
+                                Gtk.FileChooserAction.OPEN, Gtk.STOCK_OPEN)
+        if self.Dialog.response == Gtk.ResponseType.OK:
+            filename = self.Dialog.dialog.get_filename()
+            self.Dialog.dialog.destroy()
+            del self.TreeView.full_list[:]
+            self.Parser.booklist = []
+            self.TreeView.bookstore.clear()
+            self.TreeView.indxcount = 0
+            with open(filename, "r") as fname:
+                self.Parser.parsing_read(fname)
+                self.Files.chk_subdir(os.path.splitext(os.path.basename(filename))[0])
+                self.status.push(self.context, self.Files.base_status)
+                # self.status.connect("text-pushed", self.hide_statusbar, "example")
+                self.headerbar.set_title(self.main_header+" : "+filename)
+            self.TreeView.viewer(self.Parser.booklist)
+        elif self.Dialog.response == Gtk.ResponseType.CANCEL:
+            self.Dialog.dialog.destroy()
+
+    # def hide_statusbar(self):
+        # print("pushed")
+        # time.sleep(1)
+        # self.box.hide()
+
+    def file_save_as_clicked(self, name, action):
+        self.Dialog.FileChooser(["Save as an existing file",
+                                 "BiBTeX File", "*.bib"],
+                                 Gtk.FileChooserAction.SAVE, Gtk.STOCK_SAVE)
+        if self.Dialog.response == Gtk.ResponseType.OK:
+            filename = self.Dialog.dialog.get_filename()
+            print(filename)
+            self.Parser.parsing_write(filename)
+            self.Dialog.dialog.destroy()
+        elif self.Dialog.response == Gtk.ResponseType.CANCEL:
+            self.Dialog.dialog.destroy()
+
+    def on_menu_file_quit(self, widget):
+        Gtk.main_quit()
+
     def file_attach_cb(self, name):
-        self.Dialog.FileChooser(["Open Pdf file", "PDF File", "*.pdf"])
+        self.Dialog.FileChooser(["Open Pdf file", "PDF File", "*.pdf"],
+                                Gtk.FileChooserAction.OPEN, Gtk.STOCK_OPEN)
         if self.Dialog.response == Gtk.ResponseType.OK:
             self.path = self.Dialog.dialog.get_filename()
             self.all_fields["File"].set_text(self.path)
@@ -226,7 +294,11 @@ class Window(Gtk.ApplicationWindow):
             self.bcreate.set_sensitive(False)
 
     def activate_scholar(self, widget):
-        if (len(self.all_fields["Author"].get_text()) > 0):
+        if ((len(self.all_fields["Author"].get_text()) > 0) or
+            (len(self.all_fields["DOI"].get_text()) > 0)    or
+            (len(self.all_fields["Title"].get_text()) > 0)  or
+            (len(self.all_fields["File"].get_text()) > 0)
+            ):
             self.bsearch.set_sensitive(True)
         else:
             self.bsearch.set_sensitive(False)
@@ -234,101 +306,39 @@ class Window(Gtk.ApplicationWindow):
     def search_gschol(self, combo):
         model = combo.get_model()
         api_selected = combo.get_active()
-        if api_selected == 0:
-            self.search_gs()
-        elif api_selected == 1:
-            self.search_cr()
-
-    def search_gs(self):
-        neworder = [3, 0, 2, 1]
-        fields = [self.fields[i] for i in neworder]
-        datatup = tuple([self.all_fields[field].get_text() or None
+        # Search Google Scholar
+        if api_selected == 1:
+            neworder = [3, 0, 2, 1]
+            fields = [self.fields[i] for i in neworder]
+            datatup = tuple([self.all_fields[field].get_text() or None
                          for field in fields])
-        schol = "https://scholar.google.com/scholar?"
-        url = schol+lurl.urlencode({"q": datatup[1], "ylo": datatup[3]})
-        webbrowser.open(url, new=2)
-        print(self.all_fields["Author"].get_text())
-
-    def search_cr(self):
-        neworder = [3, 0, 2, 1]
-        fields = [self.fields[i] for i in neworder]
-        datatup = tuple([self.all_fields[field].get_text() or None
-                        for field in fields])
-        authorq = "+".join(datatup[1].split())
-        headers = {'Accept': 'application/x-bibtex; charset=utf-8'}
-        url = "http://api.crossref.org/works?query.author="
-        jsonget = (urlopen(url+authorq+"&rows=50"))
-        data = (json.loads(jsonget.read().decode()))
-
-        self.crrefwin = Gtk.Window(border_width=5)
-        self.crrefwin.set_default_size(950, 350)
-        grid = Gtk.Grid()
-        cr_header = Gtk.HeaderBar()
-        self.crrefwin.set_titlebar(cr_header)
-        cr_header.set_title("CrossRef Search: "+str(datatup[1]))
-        cr_header.set_show_close_button(True)
-        spinner = Gtk.Spinner()
-        cr_header.pack_end(spinner)
-        spinner.start()
-
-        self.cr_liststore = Gtk.ListStore(int, str, str, str, str)
-        self.treeview = Gtk.TreeView(model=self.cr_liststore)
-        for i, column_title in enumerate(["Index", "Title", "Author",
-                                          "Journal", "Year"]):
-            renderer = Gtk.CellRendererText()
-            column = Gtk.TreeViewColumn(column_title, renderer, text=i)
-            self.treeview.append_column(column)
-            renderer.set_property("wrap-width", 300)
-            if i > 2:
-                renderer.set_property("wrap-width", 150)
-            renderer.set_property("wrap-mode", 0)
-
-        self.get_selection = self.treeview.get_selection()
-        self.get_selection.set_mode(Gtk.SelectionMode.MULTIPLE)
-        self.scrolw = Gtk.ScrolledWindow()
-        self.scrolw.set_hexpand(True)
-        self.scrolw.set_vexpand(True)
-        self.select_button = Gtk.Button.new_with_label("Export")
-        self.select_button.connect("clicked", self.extract_data_from_cr)
-        grid.attach(self.scrolw, 0,  1, 10, 10)
-        cr_header.pack_start(self.select_button)
-        self.scrolw.add(self.treeview)
-        self.crrefwin.add(grid)
-        self.crrefwin.show_all()
-
-        self.cr_entry = []
-        for i in range(len(data["message"]["items"][0])):
-            # Too fast..wait a bit to view
-            while Gtk.events_pending():
-                Gtk.main_iteration_do(False)
-            url = ((data["message"]["items"][i]["URL"]))
-            r = requests.get(url, headers=headers)
-            r.encoding = "utf-8"
-            self.cr_entry.append(r.text.strip())
-            api_tups = list(self.Parser.parsing_read
-                            (io.StringIO(r.text.strip())))
-            api_tups[1] = i
-            self.cr_liststore.append((api_tups[1:6]))
-        spinner.stop()
-        self.bsearch.set_active(-1)
-
-    def extract_data_from_cr(self, select_button):
-        (model, pathlist) = self.get_selection.get_selected_rows()
-        for path in pathlist:
-            tree_iter = model.get_iter(path)
-            value = model.get_value(tree_iter, 0)
-            text = io.StringIO(self.cr_entry[value])
-            del self.Parser.booklist[:]
-            self.Parser.parsing_read(text)
-            biblst= [list(elem) for elem in self.Parser.booklist]
-            biblst[0].insert(0, self.TreeView.row_num)
-            self.TreeView.bookstore.append(biblst[0])
-        self.crrefwin.destroy()
-        text.close()
+            self.Datas.search_gs(datatup[1], datatup[3])
+        # Search CrossRef
+        elif api_selected == 2:
+            neworder = [3, 0, 2, 1]
+            fields = [self.fields[i] for i in neworder]
+            datatup = tuple([self.all_fields[field].get_text() or None
+                             for field in fields])
+            authorq = "+".join(datatup[1].split())
+            self.Datas.search_cr(authorq)
+        # Search DOI
+        elif api_selected ==3:
+            self.Cell.search_doi(self.all_fields["DOI"].get_text())
+        # Search Title
+        elif api_selected == 4:
+            title = self.all_fields["Title"].get_text()
+            self.Datas.gs_advanced(title)
+        elif api_selected == 5:
+            filename = self.all_fields["File"].get_text()
+            self.Datas.exif_pdf(filename)
+        # Reset fields
+        for i in self.all_fields:
+            self.all_fields[i].set_text("")
+        self.bsearch.set_active(0)
 
     def get_data(self, datalist):
         neworder = [3, 0, 2, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-                    13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+                    13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
         fields = [self.fields[i] for i in neworder]
         datatup = tuple([self.name] + [self.KeyEntry.get_text()] +
                         [self.all_fields[field].get_text() or None
@@ -350,7 +360,6 @@ class mkbib(Gtk.Application):
 
         self.Messages = dialogue.MessageDialog()
         self.Files = filemanager.file_manager()
-        self.Files.chk_rootdir()
     def new_window(self, filename=None):
         window = Window(self, filename)
         window.show()
@@ -377,7 +386,7 @@ class mkbib(Gtk.Application):
 
         builder = Gtk.Builder()
         builder.add_from_file(os.path.join(os.path.dirname
-                                           (__file__), '../data/menubar.ui'))
+                                           (__file__), '../../../../share/mkbib/ui/menubar.ui'))
 
         self.set_app_menu(builder.get_object("app-menu"))
 
@@ -398,8 +407,10 @@ def install_excepthook():
         sys.exit()
     sys.excepthook = new_hook
 
-
-if __name__ == "__main__":
+def main(version=""):
     app = mkbib()
     r = app.run(sys.argv)
     sys.exit(r)
+
+if __name__ == "__main__":
+    main()

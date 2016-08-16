@@ -1,7 +1,7 @@
 import gi
 import os
 import webbrowser
-import dialogue
+import Mkbib.dialogue as dialogue
 from gi.repository import Gtk
 gi.require_version("Gtk", "3.0")
 
@@ -12,16 +12,12 @@ class cell_renderer():
         self.Messages = dialogue.MessageDialog()
         self.Dialog = dialogue.FileDialog()
 
-        # rootdir = "/var/tmp"
-        # self.basedir = rootdir+"/Mkbib"
-        # if not os.path.exists(self.basedir):
-            # os.makedirs(self.basedir)
-
-    def open_from_renderer(self):
+    # def open_from_renderer(self):
+    def search_doi(self, doi):
         dxurl = "http://dx.doi.org/"
         # print(self.slist)
         try:
-            url = dxurl+self.doi
+            url = dxurl+doi
             webbrowser.open(url)
         except:
             print("DOI is not available")
@@ -36,7 +32,7 @@ class cell_renderer():
         self.doc = model[row][0:][-1]
 
     def file_attach_cb(self):
-        self.Dialog.FileChooser(["Open Pdf file", "PDF File", "*.pdf"], Gtk.FileChooserAction.OPEN)
+        self.Dialog.FileChooser(["Open Pdf file", "PDF File", "*.pdf"], Gtk.FileChooserAction.OPEN, Gtk.STOCK_OPEN)
         if self.Dialog.response == Gtk.ResponseType.OK:
             self.file_name = self.Dialog.dialog.get_filename()
             self.Dialog.dialog.destroy()

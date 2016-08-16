@@ -1,9 +1,9 @@
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
-import cell
-import dialogue
-import filemanager
+import Mkbib.cell as cell
+import Mkbib.dialogue as dialogue
+import Mkbib.filemanager as filemanager
 import os
 from gi.repository import GdkPixbuf
 
@@ -28,11 +28,11 @@ class treeview():
         self.view = Gtk.TreeView(model=self.bookstore)
         self.Dialog = dialogue.FileDialog()
         self.Files = filemanager.file_manager()
-
+        self.Message = dialogue.MessageDialog()
 # Put all crc edit inside this block
 
         liststore_props = Gtk.ListStore(str)
-        props = ["Open", "Edit", "Webpage","Delete", "Open Document"]
+        props = ["Open", "Edit", "Open Document", "Delete"]
         for item in props:
             liststore_props.append([item])
         renderer_combo = Gtk.CellRendererCombo()
@@ -70,12 +70,15 @@ class treeview():
         combo_indx = model.get_value(tree_iter,0)
         self.cell.row_activated(self.view, str(combo_indx), 0)
         if text == "Open":
-            self.cell.open_from_renderer()
+            self.cell.search_doi(self.cell.doi)
         elif text == "Edit":
             self.edit_clicked(self.view, str(combo_indx), 0)
         elif text == "Open Document":
             self.row_activated(self.view, str(combo_indx), 0)
-            self.Files.open_file(os.path.basename(self.cell.doc))
+            if self.cell.doc:
+                self.Files.open_file(os.path.basename(self.cell.doc))
+            else:
+                self.Message.on_error_clicked("No File attached","Attach a file first")
         elif text == "Delete":
             (model, iter) = self.view.get_selection().get_selected()
             self.bookstore.remove(iter)
@@ -102,7 +105,6 @@ class treeview():
                     self.bookstore.append(lref)
                     treeview().full_list[-1] = ref
         self.current_filter_language = None
-
         return treeview.row_num
 
     def row_activated(self, widget, row, col):
