@@ -1,7 +1,7 @@
 import gi
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
-gi.require_version('Gtk', '3.0')
 
 class MessageDialog(Gtk.Window):
 
@@ -83,14 +83,15 @@ class FileDialog(Gtk.Window):
                                        (Gtk.STOCK_CANCEL,
                                         Gtk.ResponseType.CANCEL,
                                         act_button, Gtk.ResponseType.OK))
-        filter = Gtk.FileFilter()
-        filter.set_name(header[1])
-        filter.add_pattern(header[2])
-        self.dialog.add_filter(filter)
-        filter = Gtk.FileFilter()
-        filter.set_name("All Files")
-        filter.add_pattern("*")
-        self.dialog.add_filter(filter)
+        if header[3]:
+            filter = Gtk.FileFilter()
+            filter.set_name(header[1])
+            filter.add_pattern(header[2])
+            self.dialog.add_filter(filter)
+            filter = Gtk.FileFilter()
+            filter.set_name("All Files")
+            filter.add_pattern("*")
+            self.dialog.add_filter(filter)
 
         self.response = self.dialog.run()
 

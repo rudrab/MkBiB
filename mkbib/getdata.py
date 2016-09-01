@@ -1,7 +1,7 @@
 import Mkbib.view as view
 import Mkbib.pybib as pybib
 import Mkbib.dialogue as dialogue
-import Mkbib.filemanager as filemanager
+import Mkbib.preferences as preferences
 import Mkbib.menu as menu
 import requests
 import urllib.parse as lurl
@@ -23,7 +23,7 @@ class data():
         self.Parser = pybib.parser()
         self.Dialog = dialogue.FileDialog()
         self.Messages = dialogue.MessageDialog()
-        self.Files = filemanager.file_manager()
+        self.Files = preferences.file_manager()
         self.Menu = menu.MenuManager()
 
     def search_gs(self, auth, year):
@@ -116,22 +116,28 @@ class data():
                        "Organization", "Pages", "School",
                        "Series", "Type", "Volume", "Doi", "File"]
         op=pexif.get_json(filename)
-        new_op = {
-            field: str(value) for field in fields
-            for key, value in op[0].items() if field.lower() in key.lower()
-        }
-        id_auth=new_op["Author"].split()[-1]
-        id_tit = (new_op["Title"].split()[:2])
-        id_tit.append(id_auth)
-        id_val = "_".join(id_tit)
-        new_op["ID"] = str(id_val)
-        new_op["ENTRYTYPE"] = "article"
-        op[0] = new_op
-        db = BibDatabase()
-        db.entries = op
-        writer =  BibTexWriter()
-        pdf_buff = (writer.write(db))
-        self.create_textview(pdf_buff)
+        try:
+            new_op = {
+                field: str(value) for field in fields
+                for key, value in op[0].items() if field.lower() in key.lower()
+            }
+            if 'Author' not in new_op:
+                new_op['Author'] = 'Unknown'
+            id_auth=new_op["Author"].split()[-1]
+            id_tit = (new_op["Title"].split()[:2])
+            id_tit.append(id_auth)
+            id_val = "_".join(id_tit)
+            new_op["ID"] = str(id_val)
+            new_op["ENTRYTYPE"] = "article"
+            op[0] = new_op
+            db = BibDatabase()
+            db.entries = op
+            writer =  BibTexWriter()
+            pdf_buff = (writer.write(db))
+            self.create_textview(pdf_buff)
+        except:
+            self.Messages.on_error_clicked("Can't extract data from pdf", "Try other methods")
+
 
     def create_textview(self, text):
         popup = Gtk.Window(border_width=5)

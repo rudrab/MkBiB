@@ -12,10 +12,8 @@ class cell_renderer():
         self.Messages = dialogue.MessageDialog()
         self.Dialog = dialogue.FileDialog()
 
-    # def open_from_renderer(self):
     def search_doi(self, doi):
         dxurl = "http://dx.doi.org/"
-        # print(self.slist)
         try:
             url = dxurl+doi
             webbrowser.open(url)
@@ -32,7 +30,9 @@ class cell_renderer():
         self.doc = model[row][0:][-1]
 
     def file_attach_cb(self):
-        self.Dialog.FileChooser(["Open Pdf file", "PDF File", "*.pdf"], Gtk.FileChooserAction.OPEN, Gtk.STOCK_OPEN)
+        self.Dialog.FileChooser(["Open Pdf file", "PDF File", "*.pdf"],
+                                Gtk.FileChooserAction.OPEN,
+                                Gtk.STOCK_OPEN)
         if self.Dialog.response == Gtk.ResponseType.OK:
             self.file_name = self.Dialog.dialog.get_filename()
             self.Dialog.dialog.destroy()

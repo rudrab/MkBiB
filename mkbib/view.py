@@ -3,7 +3,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 import Mkbib.cell as cell
 import Mkbib.dialogue as dialogue
-import Mkbib.filemanager as filemanager
+import Mkbib.preferences as preferences
 import os
 from gi.repository import GdkPixbuf
 
@@ -27,7 +27,7 @@ class treeview():
         self.cell = cell.cell_renderer()
         self.view = Gtk.TreeView(model=self.bookstore)
         self.Dialog = dialogue.FileDialog()
-        self.Files = filemanager.file_manager()
+        self.Files = preferences.file_manager()
         self.Message = dialogue.MessageDialog()
 # Put all crc edit inside this block
 

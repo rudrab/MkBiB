@@ -4,10 +4,10 @@ import Mkbib.view as view
 import Mkbib.dialogue as dialogue
 import io
 import Mkbib.cell as cell
-import Mkbib.filemanager as filemanager
+# import Mkbib.preferences as preferences
 import os
-from gi.repository import Gtk
 gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, Gio
 
 
 class MenuManager(Gtk.Window):
@@ -17,7 +17,7 @@ class MenuManager(Gtk.Window):
         self.TreeView = view.treeview()
         self.Dialog = dialogue.FileDialog()
         self.cell = cell.cell_renderer()
-        self.Files = filemanager.file_manager()
+        # self.Files = preferences.file_manager()
 
     def file_new_clicked(self, widget):
         dialog = Gtk.FileChooserDialog("Open an existing fine", None,
@@ -64,3 +64,42 @@ class MenuManager(Gtk.Window):
         self.parsing.parsing_read(text)
         self.TreeView.viewer(self.parsing.booklist)
         window.destroy()
+
+    # def preferences(self, err1, err2):
+        # Wpref =  Gtk.Window(border_width=5)
+        # prefheader = Gtk.HeaderBar()
+        # prefheader.set_title("Preferences")
+        # Wpref.set_titlebar(prefheader)
+        # prefheader.set_show_close_button(True)
+        # menuicon = Gtk.Image.new_from_icon_name("preferences-desktop-symbolic", Gtk.IconSize.MENU);
+        # Gtk.HeaderBar.pack_start(prefheader,menuicon);
+
+        # Wpref.set_default_size(350, 350)
+        # grid = Gtk.Grid(column_spacing=20)
+        # Wpref.add(grid)
+        # dir_label = Gtk.Label("Set user dir:")
+        # self.user_dir =Gtk.Button()
+        # self.user_dir.set_always_show_image(True)
+        # self.user_dir.set_image(image=Gtk.Image(
+                # icon_name="folder-open-symbolic"))
+        # self.user_dir.set_image_position(1)
+        # self.user_dir.connect("clicked", self.set_folder_clicked)
+        # setting = Gio.Settings.new("org.example.mkbib")
+        # setting.bind("base-folder", self.user_dir, "label", Gio.SettingsBindFlags.DEFAULT)
+        # self.basedir = setting.get_value("base-folder")
+        # print(self.basedir)
+        # grid.attach(dir_label, 0, 1, 1, 1)
+        # grid.attach(self.user_dir, 1, 1, 1, 1)
+        # Wpref.show_all()
+
+    # def set_folder_clicked(self, name):
+        # self.Dialog.FileChooser(["Choose Folder",
+                                 # "", "", False],
+                                # Gtk.FileChooserAction.SELECT_FOLDER, "Select")
+        # if self.Dialog.response == Gtk.ResponseType.OK:
+            # self.filename = self.Dialog.dialog.get_filename()
+            # self.user_dir.set_label(self.filename)
+            # self.Dialog.dialog.destroy()
+        # elif self.Dialog.response == Gtk.ResponseType.CANCEL:
+            # self.Dialog.dialog.destroy()
+

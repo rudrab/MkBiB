@@ -1,14 +1,14 @@
 #!/usr/bin/python3
 import gi
 import sys
-import Mkbib.menu as menu
 import math
 import Mkbib.view as view
 import Mkbib.pybib as pybib
 import Mkbib.dialogue as dialogue
-import Mkbib.filemanager as filemanager
 import Mkbib.cell as cell
+import Mkbib.menu as menu
 import Mkbib.getdata as getdata
+import Mkbib.preferences as preferences
 import urllib.parse as lurl
 import webbrowser
 import os
@@ -36,7 +36,7 @@ class Window(Gtk.ApplicationWindow):
         self.Parser = pybib.parser()
         self.Dialog = dialogue.FileDialog()
         self.Messages = dialogue.MessageDialog()
-        self.Files = filemanager.file_manager()
+        self.Files = preferences.file_manager()
         self.Datas = getdata.data()
         self.Cell  = cell.cell_renderer()
         #
@@ -162,7 +162,7 @@ class Window(Gtk.ApplicationWindow):
             self.notebook.append_page(self.npage, Gtk.Label(Tabs[note]))
             minf = maxf
             pdf_load_button = Gtk.Button(image=Gtk.Image(
-                icon_name="list-add-symbolic"))
+                icon_name="document-open-symbolic"))
             pdf_load_button.connect("clicked", self.file_attach_cb)
         self.npage.attach_next_to(pdf_load_button, self.all_fields["File"],
                                   Gtk.PositionType.RIGHT, 2, 1)
@@ -226,7 +226,7 @@ class Window(Gtk.ApplicationWindow):
 
     def file_open_clicked(self, name, action):
         self.Dialog.FileChooser(["Open Existing BiBTeX File",
-                                 "BiBTeX File", "*.bib"],
+                                 "BiBTeX File", "*.bib", True],
                                 Gtk.FileChooserAction.OPEN, Gtk.STOCK_OPEN)
         if self.Dialog.response == Gtk.ResponseType.OK:
             filename = self.Dialog.dialog.get_filename()
@@ -252,7 +252,7 @@ class Window(Gtk.ApplicationWindow):
 
     def file_save_as_clicked(self, name, action):
         self.Dialog.FileChooser(["Save as an existing file",
-                                 "BiBTeX File", "*.bib"],
+                                 "BiBTeX File", "*.bib", True],
                                  Gtk.FileChooserAction.SAVE, Gtk.STOCK_SAVE)
         if self.Dialog.response == Gtk.ResponseType.OK:
             filename = self.Dialog.dialog.get_filename()
@@ -266,7 +266,7 @@ class Window(Gtk.ApplicationWindow):
         Gtk.main_quit()
 
     def file_attach_cb(self, name):
-        self.Dialog.FileChooser(["Open Pdf file", "PDF File", "*.pdf"],
+        self.Dialog.FileChooser(["Open Pdf file", "PDF File", "*.pdf", True],
                                 Gtk.FileChooserAction.OPEN, Gtk.STOCK_OPEN)
         if self.Dialog.response == Gtk.ResponseType.OK:
             self.path = self.Dialog.dialog.get_filename()
@@ -358,8 +358,9 @@ class mkbib(Gtk.Application):
         self.connect("startup", self.startup)
         self.connect("activate", self.activate)
 
+        self.MenuElem = menu.MenuManager()
         self.Messages = dialogue.MessageDialog()
-        self.Files = filemanager.file_manager()
+        self.Files = preferences.file_manager()
     def new_window(self, filename=None):
         window = Window(self, filename)
         window.show()
@@ -369,11 +370,14 @@ class mkbib(Gtk.Application):
         self.new_window()
 
     def startup(self, data=None):
-
         # For app-menu
         # I would try to merge them later
         action = Gio.SimpleAction(name="new")
         action.connect("activate", lambda a, b: self.activate())
+        self.add_action(action)
+
+        action = Gio.SimpleAction(name="prefs")
+        action.connect("activate", self.Files.preferences)
         self.add_action(action)
 
         action = Gio.SimpleAction(name="about")
@@ -388,8 +392,9 @@ class mkbib(Gtk.Application):
         builder.add_from_file(os.path.join(os.path.dirname
                                            (__file__), '../../../../share/mkbib/ui/menubar.ui'))
 
-        self.set_app_menu(builder.get_object("app-menu"))
 
+        self.set_app_menu(builder.get_object("app-menu"))
+        # print(self.MenuElem.basedir)
         self.set_accels_for_action("win.about", ["<Primary>h"])
         self.set_accels_for_action("win.open", ["<Primary>o"])
         self.set_accels_for_action("win.edit", ["<Primary>I"])
