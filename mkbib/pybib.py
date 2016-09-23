@@ -1,3 +1,8 @@
+###########################################
+# Bibtex Parsed
+# Based on https://github.com/sciunto-org/python-bibtexparser
+# License: GPLv3
+###########################################
 import bibtexparser
 from bibtexparser.bparser import BibTexParser
 from bibtexparser.bwriter import BibTexWriter
@@ -15,7 +20,7 @@ class parser():
                         "booktitle", "chapter", "crossred", "edition",
                         "editor", "howpublished", "institution", "month",
                         "note", "number", "organization", "pages",
-                        "school", "series", "type", "volume", "doi", "file"]
+                        "school", "series", "type", "url", "volume", "doi", "file"]
 
     def parsing_read(self, bibfile):
         # with open(filename) as bibtex_file:

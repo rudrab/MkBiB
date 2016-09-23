@@ -1,3 +1,11 @@
+###########################################
+# dialogue.py
+# Author: Rudra Banerjee
+# Last Updated: 20/01/2016
+#
+# Various warning and Error dialogues
+# License: GPLv3
+###########################################
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
@@ -6,14 +14,11 @@ from gi.repository import GdkPixbuf
 class MessageDialog(Gtk.Window):
 
 
-    def on_info_clicked(self, widget):
+    def on_info_clicked(self, info1, info2):
         dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.INFO,
-            Gtk.ButtonsType.OK, "This is an INFO MessageDialog")
-        dialog.format_secondary_text(
-            "And this is the secondary text that explains things.")
+            Gtk.ButtonsType.OK, info1)
+        dialog.format_secondary_text(info2)
         dialog.run()
-        print("INFO dialog closed")
-
         dialog.destroy()
 
     def on_error_clicked(self, err_str1, err_str2):

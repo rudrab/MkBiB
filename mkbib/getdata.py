@@ -1,3 +1,12 @@
+###########################################
+# getdata.py
+# Author: Rudra Banerjee
+# Last Update: 20/09/2016
+#
+# Get the data from various source
+# Need to organize more
+# License: GPLv3
+###########################################
 import Mkbib.view as view
 import Mkbib.pybib as pybib
 import Mkbib.dialogue as dialogue
@@ -26,11 +35,13 @@ class data():
         self.Files = preferences.file_manager()
         self.Menu = menu.MenuManager()
 
+    # Search Google scholar
     def search_gs(self, auth, year):
         schol = "https://scholar.google.com/scholar?"
         url = schol+lurl.urlencode({"q": auth, "ylo": year})
         webbrowser.open(url, new=2)
 
+    # Search Crossref
     def search_cr(self, authorq):
         url = "http://api.crossref.org/works?query.author="
         self.jsonget = (urlopen(url+authorq+"&rows=50"))
@@ -94,6 +105,7 @@ class data():
             tree_iter = model.get_iter(path)
             value = model.get_value(tree_iter, 0)
             text = io.StringIO(self.cr_entry[value])
+            # print(self.cr_entry[value])
             del self.Parser.booklist[:]
             self.Parser.parsing_read(text)
             biblst= [list(elem) for elem in self.Parser.booklist]
@@ -103,18 +115,20 @@ class data():
         self.crrefwin.destroy()
         text.close()
 
+    # Search Google Scholar with title
     def gs_advanced(self, title):
         google_as = "https://www.google.com/search?"
         url = google_as+lurl.urlencode({"as_q":"", "as_epq": title})
         webbrowser.open(url, new=2)
 
+    # Try extracting data from pdf
     def exif_pdf(self, filename):
         fields = ["Author", "Year",  "Journal", "Title", "Publisher",
                        "Page", "Address", "Annote", "Booktitle", "Chapter",
                        "Crossred", "Edition", "Editor", "HowPublished",
                        "Institution", "Month", "Note", "Number",
                        "Organization", "Pages", "School",
-                       "Series", "Type", "Volume", "Doi", "File"]
+                       "Series", "Type", "Url", "Volume", "Doi", "File"]
         op=pexif.get_json(filename)
         try:
             new_op = {
@@ -136,9 +150,38 @@ class data():
             pdf_buff = (writer.write(db))
             self.create_textview(pdf_buff)
         except:
-            self.Messages.on_error_clicked("Can't extract data from pdf", "Try other methods")
+            self.Messages.on_error_clicked("Can't extract data from this pdf file", "Try other methods")
 
 
+    # Search DOI
+    def search_doi(self, doi):
+        dxurl = "http://dx.doi.org/"
+        url = dxurl+doi
+        print(url)
+        print(doi)
+        if dxurl in doi:
+            url = doi
+        else:
+            url = dxurl+doi
+        try:
+            headers = {"accept": "application/x-bibtex"}
+            r = requests.get(url, headers = headers)
+            text = io.StringIO(r.text)
+            del self.Parser.booklist[:]
+            self.Parser.parsing_read(text)
+            biblst= [list(elem) for elem in self.Parser.booklist]
+            biblst[0].insert(0, self.TreeView.row_num)
+            self.TreeView.viewer(self.Parser.booklist)
+
+        except:
+            try:
+                webbrowser.open(url)
+            except:
+                print("DOI is not available")
+                self.Messages.on_warn_clicked("DOI is not given",
+                                          "Search google instead")
+
+    # Create Textview: data viewer
     def create_textview(self, text):
         popup = Gtk.Window(border_width=5)
         popup.set_title("Add a complete bibtex entry")
@@ -161,5 +204,4 @@ class data():
                        txtbuffer, popup)
         popup.add(grid)
         popup.show_all()
-
 

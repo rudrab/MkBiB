@@ -1,3 +1,11 @@
+###########################################
+# view.py
+# Author: Rudra Banerjee
+# Last Update: 01/09/2016
+#
+# The right hand side of the viewer
+# License: GPLv3
+###########################################
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
@@ -14,13 +22,13 @@ class treeview():
     indxcount = 0
     bookstore = Gtk.ListStore(int, str, str, str, str, str, str, str, str, str,
                               str, str, str, str, str, str, str, str, str, str,
-                              str, str, str, str, str, str, str, str, str)
+                              str, str, str, str, str, str, str, str, str, str)
     viewstore = Gtk.ListStore(str, str)
     entries = ["Type", "Id", "Title", "Author", "Journal", "Year", "Publisher",
                "Page", "Address", "Annote", "Booktitle", "Chapter", "Crossred",
                "Edition", "Editor", "Howpublished", "Institution", "Month",
                "Note", "Number", "Organization", "Pages", "School", "Series",
-               "Type", "Volume", "DOI", "File"]
+               "Type", "Url", "Volume", "DOI", "File"]
 
     def __init__(self):
         self.indx = 0

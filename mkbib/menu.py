@@ -1,4 +1,13 @@
+###########################################
+# menu.py
+# Author: Rudra Banerjee
+# Last Update: 02/09/2016
+#
+# Organize menu items and functions
+# License: GPLv3
+###########################################
 import gi
+import subprocess
 import Mkbib.pybib as pybib
 import Mkbib.view as view
 import Mkbib.dialogue as dialogue
@@ -54,6 +63,36 @@ class MenuManager(Gtk.Window):
         button.connect("clicked", self.create_from_buffer, textbuffer, popup)
         popup.add(grid)
         popup.show_all()
+
+    def import_format(self, SimpleAction, parameter):
+        popup = Gtk.Window(border_width=5)
+        popup.set_title("Import to BiBTeX")
+        popup.set_default_size(350, 350)
+        grid = Gtk.Grid()
+        scrolw = Gtk.ScrolledWindow()
+        scrolw.set_hexpand(True)
+        scrolw.set_vexpand(True)
+        buttonRIS = Gtk.Button("From RIS")
+        tview = Gtk.TextView()
+        tview.set_wrap_mode(Gtk.WrapMode.WORD)
+
+        # Get the buffer
+        self.textbuffer = tview.get_buffer()
+        scrolw.add(tview)
+        grid.attach(scrolw, 0,  0, 10, 10)
+        grid.attach(buttonRIS, 0, 11, 10,  1)
+        # buttonRIS.connect("clicked", self.create_from_buffer, textbuffer, popup)
+        buttonRIS.connect("clicked", self.import_ris)
+        popup.add(grid)
+        popup.show_all()
+
+    def import_ris(self, textbuffer):
+        p1 = subprocess.Popen(["ris2xml", "/var/tmp/nphys3271.ris"],
+                              stdout = subprocess.PIPE)
+        with open("bib.bib", "w") as out:
+            p2 = subprocess.Popen(["xml2bib"], stdin=p1.stdout, stdout=out)
+        print(p2)
+
 
     def create_from_buffer(self, widget, textbuffer, window):
         start_iter = textbuffer.get_start_iter()

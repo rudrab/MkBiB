@@ -1,4 +1,11 @@
 #!/usr/bin/python3
+###########################################
+# main mkbib code
+# Author: Rudra Banerjee
+# Last Update: 02/09/2016
+#
+# License: GPLv3
+###########################################
 import gi
 import sys
 import math
@@ -64,10 +71,11 @@ class Window(Gtk.ApplicationWindow):
         editmenu = Gio.Menu()
         filemenu.append("Open", "win.open")
         filemenu.append("Save As", "win.save-as")
-        filemenu.append("Save", "app.save")
+        filemenu.append("Save", "win.save")
         filemenu.append("Quit", "app.quit")
         # menumodel.append_submenu("File", filemenu)
         editmenu.append("Copy BiBTeX", "win.edit")
+        editmenu.append("Import", "win.import")
         # menumodel.append("Help", "win.about")
         h_grid.attach(FileButton, 0, 0, 3, 1)
         h_grid.attach(EditButton, 3, 0, 1, 1)
@@ -97,6 +105,15 @@ class Window(Gtk.ApplicationWindow):
         action.connect("activate", self.MenuElem.create_textview)
         self.add_action(action)
 
+        action = Gio.SimpleAction(name="save")
+        action.connect("activate", self.file_save_clicked)
+        self.add_action(action)
+
+        action = Gio.SimpleAction(name="import")
+        action.connect("activate", self.MenuElem.import_format)
+        self.add_action(action)
+
+
         # Statusbar
         self.Files.chk_rootdir()
         self.status = Gtk.Statusbar()
@@ -111,7 +128,7 @@ class Window(Gtk.ApplicationWindow):
         key_store = Gtk.ListStore(int, str)
         keys = ["Article", "Book", "Booklet", "Conference", "inBook",
                 "inCollection", "inProseedings", "Manual", "MasterThesis",
-                "Misc", "PhdThesis", "Proceedings", "TechReport",
+                "Misc", "Online", "PhdThesis", "Proceedings", "TechReport",
                 "Unpublished"]
         for key in keys:
             key_store.append([keys.index(key), key])
@@ -136,7 +153,7 @@ class Window(Gtk.ApplicationWindow):
                        "Crossred", "Edition", "Editor", "HowPublished",
                        "Institution", "Month", "Note", "Number",
                        "Organization", "Pages", "School",
-                       "Series", "Type", "Volume", "DOI", "File"]
+                       "Series", "Type", "Url", "Volume", "DOI", "File"]
         # self.fields = self.Parser.entries
         # self.fields = [item.capitalize() for item in self.fields]
         Tabs = ["Essential", "Publishers", "Extra I", "Extra II", "Extra III"]
@@ -229,18 +246,18 @@ class Window(Gtk.ApplicationWindow):
                                  "BiBTeX File", "*.bib", True],
                                 Gtk.FileChooserAction.OPEN, Gtk.STOCK_OPEN)
         if self.Dialog.response == Gtk.ResponseType.OK:
-            filename = self.Dialog.dialog.get_filename()
+            self.filename = self.Dialog.dialog.get_filename()
             self.Dialog.dialog.destroy()
             del self.TreeView.full_list[:]
             self.Parser.booklist = []
             self.TreeView.bookstore.clear()
             self.TreeView.indxcount = 0
-            with open(filename, "r") as fname:
+            with open(self.filename, "r") as fname:
                 self.Parser.parsing_read(fname)
-                self.Files.chk_subdir(os.path.splitext(os.path.basename(filename))[0])
+                self.Files.chk_subdir(os.path.splitext(os.path.basename(self.filename))[0])
                 self.status.push(self.context, self.Files.base_status)
                 # self.status.connect("text-pushed", self.hide_statusbar, "example")
-                self.headerbar.set_title(self.main_header+" : "+filename)
+                self.headerbar.set_title(self.main_header+" : "+self.filename)
             self.TreeView.viewer(self.Parser.booklist)
         elif self.Dialog.response == Gtk.ResponseType.CANCEL:
             self.Dialog.dialog.destroy()
@@ -249,6 +266,28 @@ class Window(Gtk.ApplicationWindow):
         # print("pushed")
         # time.sleep(1)
         # self.box.hide()
+
+    def file_save_clicked(self, name, action):
+        # filename = self.Dialog.dialog.get_filename()
+        # print(self.filename)
+        # if not self.filename:
+            # print("Will save as a new file")
+            # self.Dialog.FileChooser(["Save as an existing file",
+                                 # "BiBTeX File", "*.bib", True],
+                                 # Gtk.FileChooserAction.SAVE, Gtk.STOCK_SAVE)
+            # if self.Dialog.response == Gtk.ResponseType.OK:
+                # filename = self.Dialog.dialog.set_filename()
+                # print(filename)
+                # self.Parser.parsing_write(filename)
+                # self.Dialog.dialog.destroy()
+            # elif self.Dialog.response == Gtk.ResponseType.CANCEL:
+                # self.Dialog.dialog.destroy()
+        try:
+            self.Parser.parsing_write(self.filename)
+        except:
+            self.Messages.on_error_clicked("No file to save", "Try to 'save as' a new file")
+
+
 
     def file_save_as_clicked(self, name, action):
         self.Dialog.FileChooser(["Save as an existing file",
@@ -323,7 +362,8 @@ class Window(Gtk.ApplicationWindow):
             self.Datas.search_cr(authorq)
         # Search DOI
         elif api_selected ==3:
-            self.Cell.search_doi(self.all_fields["DOI"].get_text())
+            self.Datas.search_doi(self.all_fields["DOI"].get_text())
+
         # Search Title
         elif api_selected == 4:
             title = self.all_fields["Title"].get_text()
@@ -397,7 +437,8 @@ class mkbib(Gtk.Application):
         # print(self.MenuElem.basedir)
         self.set_accels_for_action("win.about", ["<Primary>h"])
         self.set_accels_for_action("win.open", ["<Primary>o"])
-        self.set_accels_for_action("win.edit", ["<Primary>I"])
+        self.set_accels_for_action("win.edit", ["<Primary>E"])
+        self.set_accels_for_action("win.import", ["<Primary>I"])
         self.set_accels_for_action("win.save", ["<Primary>s"])
 
 

@@ -1,6 +1,15 @@
+###########################################
+# cell.py
+# Author: Rudra Banerjee
+# Last Updated: 20/01/2016
+#
+# Edit the cells in viewer menu
+# License: GPLv3
+###########################################
 import gi
 import os
 import webbrowser
+import subprocess
 import Mkbib.dialogue as dialogue
 from gi.repository import Gtk
 gi.require_version("Gtk", "3.0")
@@ -12,15 +21,20 @@ class cell_renderer():
         self.Messages = dialogue.MessageDialog()
         self.Dialog = dialogue.FileDialog()
 
-    def search_doi(self, doi):
-        dxurl = "http://dx.doi.org/"
-        try:
-            url = dxurl+doi
-            webbrowser.open(url)
-        except:
-            print("DOI is not available")
-            self.Messages.on_warn_clicked("DOI is not given",
-                                          "Search google instead")
+    # def search_doi(self, doi):
+        # dxurl = "http://dx.doi.org/"
+        # url = dxurl+doi
+        # print(url)
+        # print(doi)
+        # try:
+            # subprocess.call(["curl", "-LH", 'Accept: text/bibliography; style=bibtex', doi])
+        # except ExplicitException:
+            # try:
+                # webbrowser.open(url)
+            # except:
+                # print("DOI is not available")
+                # self.Messages.on_warn_clicked("DOI is not given",
+                                          # "Search google instead")
 
     def row_activated(self, widget, row, col):
         self.row = row
@@ -30,7 +44,7 @@ class cell_renderer():
         self.doc = model[row][0:][-1]
 
     def file_attach_cb(self):
-        self.Dialog.FileChooser(["Open Pdf file", "PDF File", "*.pdf"],
+        self.Dialog.FileChooser(["Open Pdf file", "PDF File", "*.pdf", "yes"],
                                 Gtk.FileChooserAction.OPEN,
                                 Gtk.STOCK_OPEN)
         if self.Dialog.response == Gtk.ResponseType.OK:
