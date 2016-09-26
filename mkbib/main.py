@@ -431,6 +431,8 @@ class mkbib(Gtk.Application):
         builder = Gtk.Builder()
         builder.add_from_file(os.path.join(os.path.dirname
                                            (__file__), '../../../../share/mkbib/ui/menubar.ui'))
+        # builder.add_from_file(os.path.join(os.path.dirname
+                                           # (__file__), '../../../../share/mkbib/ui/menubar.ui'))
 
 
         self.set_app_menu(builder.get_object("app-menu"))
