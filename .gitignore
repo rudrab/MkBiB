@@ -9,7 +9,5 @@ config.status
 configure 
 data/mkbib.desktop 
 data/org.example.mkbib.gschema.valid 
-install-sh 
-missing 
-py-compile
 devel/
+*.swp

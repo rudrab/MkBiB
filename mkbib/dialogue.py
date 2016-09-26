@@ -7,6 +7,7 @@
 # License: GPLv3
 ###########################################
 import gi
+import Mkbib
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
@@ -54,15 +55,16 @@ class MessageDialog(Gtk.Window):
         dialog = Gtk.AboutDialog(program_name="MkBiB", transient_for=self,
                                  name="About MkBiB",
                                  comments=comments,
-                                 version="0.1",
+                                 version= Mkbib.__version__,
                                  copyright=copyright,
                                  license_type=Gtk.License.GPL_3_0,
                                  authors=(["Rudra Banerjee"]),
                                  website="https://github.com/rudrab/mkbib")
         # dialog.set_transient(Window)
-        dialog.set_logo(GdkPixbuf.Pixbuf.new_from_file_at_size(
-            "/home/rudra/Devel/Icons/shadow/scalable/apps/mkbib.svg", 128, 128)
-        )
+        dialog.set_logo_icon_name("mkbib")
+        # dialog.set_logo(GdkPixbuf.Pixbuf.new_from_file_at_size(
+            # "mkbib.svg", 128, 128)
+        # )
         dialog.run()
         dialog.destroy()
 
