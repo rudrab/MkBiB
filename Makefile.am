@@ -25,7 +25,7 @@ data/gschemas.compiled: $(gsettings_SCHEMAS)
 	$(AM_V_GEN) $(GLIB_COMPILE_SCHEMAS) data
 
 EXTRA_DIST = $(gsettings_SCHEMAS)
-CLEANFILES = data/gschemas.compiled
+CLEANFILES = data/gschemas.compiled bin/mkbib
 SUBDIRS=data
 dist-hook:
 	@if test -d "$(srcdir)/.git"; \
@@ -40,3 +40,4 @@ dist-hook:
 		else \
 		echo A git clone is required to generate a ChangeLog >&2; \
 	fi
+
