@@ -54,24 +54,17 @@ There are multiple options to do create/manage BiBTeX files.
 3. You can create `BiBTeX` entry from internet. Your options are:
     1. [doi](https://www.doi.org/) of the article. The mandatory field is:
       * `Extra III -> DOI`
-    2. Search [Google Scholar](https://scholar.google.com)<sup><a name=gsfoot>1</a></sup>   or [Crossref](http://www.crossref.org/)
+    2. Search [Google Scholar](https://scholar.google.com)<sup>[1](#gsfoot)</sup>   or [Crossref](http://www.crossref.org/)
       * The mandatory field is:
         * Author  
       * Auxillary fields are:
         * Year
         * Title
 
-    <!--3. Search [Crossref](http://www.crossref.org/). -->
-      <!--* The mandatory field is:-->
-        <!--* Author-->
-      <!--* Auxillary fields are:-->
-        <!--* Year-->
-        <!--* Title-->
-
 
 Contact
 -------
 The preferred way of contacting me is via [github project page](https://github.com/rudrab/PeriodicTable/issues)
 
-[1](#gsfoot) : Since `Scholar` does not provide any `api`, results from this method will open in the
+<a name=gsfoot>1</a>: Since `Scholar` does not provide any `api`, results from this method will open in the
   website. You have to get the bibtex from the site itself.
