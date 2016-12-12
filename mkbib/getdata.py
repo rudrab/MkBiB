@@ -20,12 +20,15 @@ import json
 from pprint import pprint
 import io
 import gi
+import PyPDF2
+import subprocess as sp
 from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
 from _thread import start_new_thread, allocate_lock
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gio, GLib
-import pyexifinfo  as pexif
+# import pyexifinfo  as pexif
+import re
 class data():
     def __init__(self):
         self.TreeView = view.treeview()
@@ -121,36 +124,6 @@ class data():
         url = google_as+lurl.urlencode({"as_q":"", "as_epq": title})
         webbrowser.open(url, new=2)
 
-    # Try extracting data from pdf
-    def exif_pdf(self, filename):
-        fields = ["Author", "Year",  "Journal", "Title", "Publisher",
-                       "Page", "Address", "Annote", "Booktitle", "Chapter",
-                       "Crossred", "Edition", "Editor", "HowPublished",
-                       "Institution", "Month", "Note", "Number",
-                       "Organization", "Pages", "School",
-                       "Series", "Type", "Url", "Volume", "Doi", "File"]
-        op=pexif.get_json(filename)
-        try:
-            new_op = {
-                field: str(value) for field in fields
-                for key, value in op[0].items() if field.lower() in key.lower()
-            }
-            if 'Author' not in new_op:
-                new_op['Author'] = 'Unknown'
-            id_auth=new_op["Author"].split()[-1]
-            id_tit = (new_op["Title"].split()[:2])
-            id_tit.append(id_auth)
-            id_val = "_".join(id_tit)
-            new_op["ID"] = str(id_val)
-            new_op["ENTRYTYPE"] = "article"
-            op[0] = new_op
-            db = BibDatabase()
-            db.entries = op
-            writer =  BibTexWriter()
-            pdf_buff = (writer.write(db))
-            self.create_textview(pdf_buff)
-        except:
-            self.Messages.on_error_clicked("Can't extract data from this pdf file", "Try other methods")
 
 
     # Search DOI
@@ -181,6 +154,50 @@ class data():
                 self.Messages.on_warn_clicked("DOI is not given",
                                           "Search google instead")
 
+    # Try extracting data from pdf
+    def exif_pdf(self, filename):
+        # fields = ["Author", "Year",  "Journal", "Title", "Publisher",
+                       # "Page", "Address", "Annote", "Booktitle", "Chapter",
+                       # "Crossred", "Edition", "Editor", "HowPublished",
+                       # "Institution", "Month", "Note", "Number",
+                       # "Organization", "Pages", "School",
+                       # "Series", "Type", "Url", "Volume", "Doi", "File"]
+        # op=pexif.get_json(filename)
+        try:
+            filestr = sp.check_output(["pdf2txt.py", "-p", "1", filename]).decode("utf-8")
+            doi = re.search('doi:\s*[A-Za-z0-9./]*', filestr, re.IGNORECASE)#.group()[4:]
+        except:
+            pdf = PyPDF2.PdfFileReader(open(filename, "rb"))
+            filestr = (pdf.getPage(0).extractText())
+            doi = re.search('doi:\s*[A-Za-z0-9./]*', filestr, re.IGNORECASE)#.group()[4:]
+
+        try:
+            self.search_doi(doi.group()[4:])
+        except:
+            self.Messages.on_error_clicked("Can't extract data from this pdf file", "Try other methods")
+            # print(filename)
+            # proc = sp.check_output(["pdf2txt.py", "-p", "1", filename]).decode("utf-8")
+            # doi = re.search('doi:\s*[A-Za-z0-9./]*', proc, re.IGNORECASE).group()[4:]
+            # print(doi)
+            # self.search_doi(doi)
+            # new_op = {
+                # field: str(value) for field in fields
+                # for key, value in op[0].items() if field.lower() in key.lower()
+            # }
+            # if 'Author' not in new_op:
+                # new_op['Author'] = 'Unknown'
+            # id_auth=new_op["Author"].split()[-1]
+            # id_tit = (new_op["Title"].split()[:2])
+            # id_tit.append(id_auth)
+            # id_val = "_".join(id_tit)
+            # new_op["ID"] = str(id_val)
+            # new_op["ENTRYTYPE"] = "article"
+            # op[0] = new_op
+            # db = BibDatabase()
+            # db.entries = op
+            # writer =  BibTexWriter()
+            # pdf_buff = (writer.write(db))
+            # self.create_textview(pdf_buff)
     # Create Textview: data viewer
     def create_textview(self, text):
         popup = Gtk.Window(border_width=5)

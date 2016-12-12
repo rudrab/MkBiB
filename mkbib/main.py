@@ -434,7 +434,6 @@ class mkbib(Gtk.Application):
         # builder.add_from_file(os.path.join(os.path.dirname
                                            # (__file__), '../../../../share/mkbib/ui/menubar.ui'))
 
-
         self.set_app_menu(builder.get_object("app-menu"))
         # print(self.MenuElem.basedir)
         self.set_accels_for_action("win.about", ["<Primary>h"])
@@ -443,7 +442,7 @@ class mkbib(Gtk.Application):
         self.set_accels_for_action("win.import", ["<Primary>I"])
         self.set_accels_for_action("win.save", ["<Primary>s"])
 
-
+# Managing exception
 def install_excepthook():
     """ Make sure we exit when an unhandled exception occurs. """
     old_hook = sys.excepthook
