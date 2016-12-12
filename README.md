@@ -66,5 +66,5 @@ Contact
 -------
 The preferred way of contacting me is via [github project page](https://github.com/rudrab/PeriodicTable/issues)
 
-<a name=gsfoot>1</a> : Since `Scholar` does not provide any `api`, results from this method will open in the
+<a name="gsfoot">1</a> : Since `Scholar` does not provide any `api`, results from this method will open in the
   website. You have to get the bibtex from the site itself.
