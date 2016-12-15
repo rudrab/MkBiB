@@ -8,6 +8,7 @@ MkBiB
 - [Usage](#usage)
 - [ToDo](#todo)
 - [Contact](#contact)
+- [My Other App](#app)
 
 Introduction
 ============
@@ -70,6 +71,14 @@ ToDo
 Contact
 -------
 The preferred way of contacting me is via [github project page](https://github.com/rudrab/PeriodicTable/issues)
+
+My Other Apps
+-------------
+See other apps I have developed:
+- [mkbib](http://rudrab.github.io/mkbib/)
+- [Periodic Table](http://rudrab.github.io/PeriodicTable/)
+- [Shadow](http://rudrab.github.io/Shadow/)
+- [vimf90](http://rudrab.github.io/vimf90/)
 
 <a name="gsfoot">1</a> : Since `Scholar` does not provide any `api`, results from this method will open in the
   website. You have to get the bibtex from the site itself.
