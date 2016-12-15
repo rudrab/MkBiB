@@ -6,6 +6,7 @@ MkBiB
     - [Linux](#linux)
     - [Mac Os X](mac)
 - [Usage](#usage)
+- [ToDo](#todo)
 - [Contact](#contact)
 
 Introduction
@@ -61,6 +62,10 @@ There are multiple options to do create/manage BiBTeX files.
         * Year
         * Title
 
+ToDo
+----
+- Convert intermediate BiBTeX to sql database.
+- Include BiBLaTeX keys.
 
 Contact
 -------
