@@ -70,7 +70,7 @@ ToDo
 
 Contact
 -------
-The preferred way of contacting me is via [github project page](https://github.com/rudrab/PeriodicTable/issues)
+The preferred way of contacting me is via [github project page](https://github.com/rudrab/mkbib/issues)
 
 My Other Apps
 -------------
