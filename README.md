@@ -75,9 +75,13 @@ The preferred way of contacting me is via [github project page](https://github.c
 My Other Apps
 -------------
 See other apps I have developed:
+
 - [mkbib](http://rudrab.github.io/mkbib/)
+
 - [Periodic Table](http://rudrab.github.io/PeriodicTable/)
+
 - [Shadow](http://rudrab.github.io/Shadow/)
+
 - [vimf90](http://rudrab.github.io/vimf90/)
 
 <a name="gsfoot">1</a> : Since `Scholar` does not provide any `api`, results from this method will open in the
