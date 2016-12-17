@@ -1,5 +1,3 @@
-MkBiB
-=====
 - [Introduction](#intro)
 - [Install](#install)
   - [Dependencies](#depend)
