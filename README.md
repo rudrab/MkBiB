@@ -75,17 +75,15 @@ The preferred way of contacting me is via [github project page](https://github.c
 
 My Other Apps
 =============
-
 See other apps I have developed:
 
-- [mkbib](http://rudrab.github.io/mkbib/)
+- [MkBiB](http://rudrab.github.io/mkbib/): BiBTeX Manager
 
-- [Periodic Table](http://rudrab.github.io/PeriodicTable/)
+- [Periodic Table](http://rudrab.github.io/PeriodicTable/): Periodic Table and Extra
 
-- [Shadow](http://rudrab.github.io/Shadow/)
+- [Shadow](http://rudrab.github.io/Shadow/): Icon theme for Gnome desktop
 
-- [vimf90](http://rudrab.github.io/vimf90/)
-
+- [vimf90](http://rudrab.github.io/vimf90/): Firtran plugin for vim
 
 <a name="gsfoot">1</a> : Since `Scholar` does not provide any `api`, results from this method will open in the
   website. You have to get the bibtex from the site itself.
