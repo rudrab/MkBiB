@@ -11,6 +11,7 @@ manage your journals as you write it: from your [BiBTeX](http://www.bibtex.org/)
 - [Usage](#usage)
 - [ToDo](#todo)
 - [Contact](#contact)
+- [Coffee and Cookies](#donate)
 - [My Other App](#app)
 
 
@@ -72,6 +73,10 @@ ToDo
 Contact
 =======
 The preferred way of contacting me is via [github project page](https://github.com/rudrab/mkbib/issues)
+
+Coffee and Cookies
+==================
+If you <em>really</em> like _Periodic Table_ and found it usefull, please buy me a coffee using [PayPal](https://www.paypal.me/RudraBanerjee).
 
 My Other Apps
 =============
