@@ -88,7 +88,7 @@ See other apps I have developed:
 
 - [Shadow](http://rudrab.github.io/Shadow/): Icon theme for Gnome desktop
 
-- [vimf90](http://rudrab.github.io/vimf90/): Firtran plugin for vim
+- [vimf90](http://rudrab.github.io/vimf90/): Change vim to a fortran IDE
 
 <a name="gsfoot">1</a> : Since `Scholar` does not provide any `api`, results from this method will open in the
   website. You have to get the bibtex from the site itself.
