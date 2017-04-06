@@ -55,7 +55,7 @@ class MessageDialog(Gtk.Window):
         dialog = Gtk.AboutDialog(program_name="MkBiB", transient_for=self,
                                  name="About MkBiB",
                                  comments=comments,
-                                 version= Mkbib.__version__,
+                                 version= Mkbib.version,
                                  copyright=copyright,
                                  license_type=Gtk.License.GPL_3_0,
                                  authors=(["Rudra Banerjee"]),

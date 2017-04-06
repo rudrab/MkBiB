@@ -1,7 +1,7 @@
 AC_PREREQ(2.52)
 #m4_include([aclocal/ax_prog_perl_modules.m4])
 #m4_include([aclocal/ax_python_module.m4])
-AC_INIT([mkbib], [0.3],[],[mkbib])
+AC_INIT([BiBTeX Manager], [0.3],[],[mkbib])
 AM_INIT_AUTOMAKE([1.9.6 dist-bzip2 subdir-objects foreign])
 GLIB_GSETTINGS
 AM_PATH_GTK_3_0([3.4.0],,AC_MSG_ERROR([Gtk+ 3.0.0 or higher required.]))
@@ -18,7 +18,8 @@ AM_PATH_PYTHON([3.0])
 #AX_PYTHON_MODULE(subprocess, fatal, python3)
 
 
-AC_CONFIG_FILES([Makefile 
+AC_CONFIG_FILES([Makefile
+                 mkbib/__init__.py
                  data/Makefile
                  data/mkbib.desktop
                  data/icons/Makefile
