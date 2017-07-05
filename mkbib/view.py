@@ -9,6 +9,7 @@
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
+import Mkbib
 import Mkbib.cell as cell
 import Mkbib.dialogue as dialogue
 import Mkbib.preferences as preferences
@@ -24,11 +25,19 @@ class treeview():
                               str, str, str, str, str, str, str, str, str, str,
                               str, str, str, str, str, str, str, str, str, str)
     viewstore = Gtk.ListStore(str, str)
-    entries = ["Type", "Id", "Title", "Author", "Journal", "Year", "Publisher",
-               "Page", "Address", "Annote", "Booktitle", "Chapter", "Crossred",
-               "Edition", "Editor", "Howpublished", "Institution", "Month",
-               "Note", "Number", "Organization", "Pages", "School", "Series",
-               "Type", "Url", "Volume", "DOI", "File"]
+
+    # Need to be aligned properly
+    # Type and value doesnot match
+    neworder = [3, 0, 2, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                    13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 26, 24, 25]
+    entries = [Mkbib.fields[i] for i in neworder]
+    entries.insert(0,"ID")
+    entries.insert(0,"Type")
+    #  entries = Mkbib.fields #["Title", "Author", "Journal", "Year", "Publisher",
+               #"Page", "Address", "Annote", "Booktitle", "Chapter", "Crossred",
+               #"Edition", "Editor", "Howpublished", "Institution", "Month",
+               #"Note", "Number", "Organization", "Pages", "School", "Series",
+               #"Type", "Url", "Volume", "DOI", "File"]
 
     def __init__(self):
         self.indx = 0
@@ -160,7 +169,6 @@ class treeview():
         spinner = Gtk.Spinner()
         popheader.pack_end(spinner)
         spinner.start()
-
         grid = Gtk.Grid()
         scrolw = Gtk.ScrolledWindow()
         scrolw.set_hexpand(True)

@@ -9,6 +9,7 @@
 import gi
 import sys
 import math
+import Mkbib
 import Mkbib.view as view
 import Mkbib.pybib as pybib
 import Mkbib.dialogue as dialogue
@@ -128,7 +129,7 @@ class Window(Gtk.ApplicationWindow):
         key_store = Gtk.ListStore(int, str)
         keys = ["Article", "Book", "Booklet", "Conference", "inBook",
                 "inCollection", "inProseedings", "Manual", "MasterThesis",
-                "Misc", "Online", "PhdThesis", "Proceedings", "TechReport",
+                "Misc", "PhdThesis", "Proceedings", "TechReport",
                 "Unpublished"]
         for key in keys:
             key_store.append([keys.index(key), key])
@@ -148,22 +149,22 @@ class Window(Gtk.ApplicationWindow):
         xpos = 0
         minf = 0
         self.all_fields = dict()
-        self.fields = ["Author",  "Year",  "Journal", "Title", "Publisher",
-                       "Page", "Address", "Annote", "Booktitle", "Chapter",
-                       "Crossred", "Edition", "Editor", "HowPublished",
-                       "Institution", "Month", "Note", "Number",
-                       "Organization", "Pages", "School",
-                       "Series", "Type", "Url", "Volume", "DOI", "File"]
+        #  self.fields = ["Author",  "Year",  "Journal", "Title", "Publisher",
+                       #  "Page", "Address", "Annote", "Booktitle", "Chapter",
+                       #  "Crossred", "Edition", "Editor", "HowPublished",
+                       #  "Institution", "Month", "Note", "Number",
+                       #  "Organization", "Pages", "School",
+                       #  "Series", "Type", "Url", "DOI", "File","Volume"]
         # self.fields = self.Parser.entries
         # self.fields = [item.capitalize() for item in self.fields]
         Tabs = ["Essential", "Publishers", "Extra I", "Extra II", "Extra III"]
-        for note in range(math.ceil(len(self.fields)/6)):
+        for note in range(math.ceil(len(Mkbib.fields)/6)):
             ypos = 0
             self.npage = "page"+str(note)
             self.npage = Gtk.Grid()
             self.npage.set_border_width(10)
             maxf = minf+6
-            for field in self.fields[minf:maxf]:
+            for field in Mkbib.fields[minf:maxf]:
                 self.lfield = "L" + field
                 self.lfield = Gtk.Label(field)
                 self.lfield.set_xalign(0)
@@ -348,14 +349,14 @@ class Window(Gtk.ApplicationWindow):
         # Search Google Scholar
         if api_selected == 1:
             neworder = [3, 0, 2, 1]
-            fields = [self.fields[i] for i in neworder]
+            fields = [Mkbib.fields[i] for i in neworder]
             datatup = tuple([self.all_fields[field].get_text() or None
                          for field in fields])
             self.Datas.search_gs(datatup[1], datatup[3])
         # Search CrossRef
         elif api_selected == 2:
             neworder = [3, 0, 2, 1]
-            fields = [self.fields[i] for i in neworder]
+            fields = [Mkbib.fields[i] for i in neworder]
             datatup = tuple([self.all_fields[field].get_text() or None
                              for field in fields])
             authorq = "+".join(datatup[1].split())
@@ -378,12 +379,12 @@ class Window(Gtk.ApplicationWindow):
 
     def get_data(self, datalist):
         neworder = [3, 0, 2, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-                    13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
-        fields = [self.fields[i] for i in neworder]
+                    13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,26]
+        fields = [Mkbib.fields[i] for i in neworder]
         datatup = tuple([self.name] + [self.KeyEntry.get_text()] +
                         [self.all_fields[field].get_text() or None
                          for field in fields])
-        # print(datatup)
+        print(len(datatup))
         self.Parser.booklist.clear()
         self.Parser.booklist.append(datatup)
         self.TreeView.viewer(self.Parser.booklist)

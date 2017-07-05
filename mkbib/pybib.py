@@ -6,9 +6,9 @@
 import bibtexparser
 from bibtexparser.bparser import BibTexParser
 from bibtexparser.bwriter import BibTexWriter
+from bibtexparser import bibdatabase
 from bibtexparser.bibdatabase import BibDatabase
 import Mkbib.view as view
-
 
 class parser():
     def __init__(self):
@@ -21,6 +21,8 @@ class parser():
                         "editor", "howpublished", "institution", "month",
                         "note", "number", "organization", "pages",
                         "school", "series", "type", "url", "volume", "doi", "file"]
+        bibdatabase.STANDARD_TYPES.add("online")
+        # print(bibtexparser.bibdatabase.STANDARD_TYPES)
 
     def parsing_read(self, bibfile):
         # with open(filename) as bibtex_file:
