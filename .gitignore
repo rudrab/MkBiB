@@ -25,4 +25,9 @@ data/org.example.mkbib.gschema.valid
 data/ui/Makefile
 data/ui/Makefile.in
 mkbib/__pycache__/
-
+compile
+missing
+py-compile
+install-sh
+build/
+mkbib.egg-info/
