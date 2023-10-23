@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-version = '0.4'
+version = '1.0'
 fields = [
     "Author", "Year", "Journal", "Title", "Publisher", "Page", "Address",
     "Annote", "Booktitle", "Chapter", "Crossred", "Edition", "Editor",
