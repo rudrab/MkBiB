@@ -13,6 +13,7 @@
 
 You write articles in peer reviewed journal, and your `Downloads` folder is usually a mess. Now
 manage your journals as you write it: from your BiBTeX.
+> This is a development branch. Many features, notably copy bibtex is broken.
 
 ## Install
 
@@ -28,6 +29,11 @@ installation; or you can install them using `$sudo pip install <module>`
 
 This code is build using [bibtexparser](https://bibtexparser.readthedocs.io/en/main/).
 We are currently in process to move from bibtexparser-v1.4->v2.
+To use the features of this branch, you have to upgrade `bibtexperser` to `v2` with
+``` bash
+pip install --upgrade -pre bibtexperser
+```
+(or just run `bash mod_install.sh`)
 #### Linux
 An auxiliary code `mod_install.sh` is given to install all the dependencies.
 
