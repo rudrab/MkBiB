@@ -24,8 +24,9 @@ import Mkbib.pybib as pybib
 import Mkbib.view as view
 import PyPDF2
 import requests
-from bibtexparser.bibdatabase import BibDatabase
-from bibtexparser.bwriter import BibTexWriter
+
+#  from bibtexparser.bibdatabase import BibDatabase
+#  from bibtexparser.bwriter import BibTexWriter
 
 gi.require_version("Gtk", "3.0")
 # import pyexifinfo  as pexif
@@ -35,6 +36,7 @@ from gi.repository import Gio, GLib, Gtk
 
 
 class data():
+
   def __init__(self):
     self.TreeView = view.treeview()
     self.Parser = pybib.parser()
@@ -134,19 +136,20 @@ class data():
 
   # Search DOI
   def search_doi(self, doi):
-    dxurl = "http://dx.doi.org/"
+    dxurl = "https://doi.org/"
     url = dxurl + doi
-    print(url)
-    print(doi)
     if dxurl in doi:
       url = doi
     else:
       url = dxurl + doi
+    #  print(url)
+    #  print(doi)
     try:
       headers = {"accept": "application/x-bibtex"}
-      r = requests.get(url, headers=headers)
-      text = io.StringIO(r.text)
+      r = requests.get(url, headers=headers, timeout=5)
+      text = r.text  # io.StringIO(r.text)
       del self.Parser.booklist[:]
+      print(r.text)
       self.Parser.parsing_read(text)
       biblst = [list(elem) for elem in self.Parser.booklist]
       biblst[0].insert(0, self.TreeView.row_num)
@@ -154,7 +157,8 @@ class data():
 
     except:
       try:
-        webbrowser.open(url)
+        #  webbrowser.open(url)
+        print("DOI is not available")
       except:
         print("DOI is not available")
         self.Messages.on_warn_clicked("DOI is not given",
@@ -173,12 +177,12 @@ class data():
       filestr = sp.check_output(["pdf2txt.py", "-p", "1",
                                  filename]).decode("utf-8")
       doi = re.search('doi:\s*[A-Za-z0-9./]*', filestr,
-                      re.IGNORECASE)  #.group()[4:]
+                      re.IGNORECASE)  # .group()[4:]
     except:
       pdf = PyPDF2.PdfFileReader(open(filename, "rb"))
       filestr = (pdf.getPage(0).extractText())
       doi = re.search('doi:\s*[A-Za-z0-9./]*', filestr,
-                      re.IGNORECASE)  #.group()[4:]
+                      re.IGNORECASE)  # .group()[4:]
 
     try:
       self.search_doi(doi.group()[4:])

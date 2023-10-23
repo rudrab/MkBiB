@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
+import gettext
+import locale
 import os
 import sys
-import locale
-import gettext
 
 from gi.repository import Gio
 
@@ -21,24 +21,23 @@ pkgdatadir = '@pkgdatadir@'
 localedir = '@localedir@'
 srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if os.path.exists(os.path.join(srcdir, 'configure.ac')):
-    print('Running locally...')
-    sys.path.insert(1, srcdir)
-    pkgdatadir = srcdir
+  print('Running locally...')
+  sys.path.insert(1, srcdir)
+  pkgdatadir = srcdir
 
-    import gi
-    gi.require_version('Gtk', '3.0')
-    from gi.repository import Gtk
-    theme = Gtk.IconTheme.get_default()
-    theme.append_search_path(os.path.join(srcdir, 'data', 'icons'))
+  import gi
+  gi.require_version('Gtk', '3.0')
+  from gi.repository import Gtk
+  theme = Gtk.IconTheme.get_default()
+  theme.append_search_path(os.path.join(srcdir, 'data', 'icons'))
 
 locale.bindtextdomain('mkbib', localedir)
 locale.textdomain('mkbib')
 gettext.bindtextdomain('mkbib', localedir)
 gettext.textdomain('mkbib')
 
-
 if __name__ == "__main__":
-    from Mkbib import main
-    main.main(version=VERSION)
-    # import mkbib.main as mkbib
-    # mkbib.main(version=VERSION)
+  from Mkbib import main
+  main.main(version=VERSION)
+  # import mkbib.main as mkbib
+  # mkbib.main(version=VERSION)

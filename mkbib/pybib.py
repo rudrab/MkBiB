@@ -6,60 +6,44 @@
 import bibtexparser
 import Mkbib
 import Mkbib.view as view
-from bibtexparser import bibdatabase
-from bibtexparser.bibdatabase import BibDatabase
-from bibtexparser.bparser import BibTexParser
-from bibtexparser.bwriter import BibTexWriter
 
 
 class parser():
+
   def __init__(self):
     self.booklist = []
-    self.db = BibDatabase()
+    self.db = bibtexparser.Library()
     self.TreeView = view.treeview()
-    #  self.entries = [
-    #  "ENTRYTYPE", "ID", "title", "author", "journal", "year", "publisher",
-    #  "page", "address", "annote", "booktitle", "chapter", "crossred",
-    #  "edition", "editor", "howpublished", "institution", "month", "note",
-    #  "number", "organization", "pages", "school", "series", "type", "url",
-    #  "volume", "doi", "file", "keywords"
-    #  ]
-
-    #  fields = [
-    #  "Author", "Year", "Journal", "Title", "Publisher", "Page", "Address",
-    #  "Annote", "Booktitle", "Chapter", "Crossred", "Edition", "Editor",
-    #  "HowPublished", "Institution", "Month", "Note", "Number", "Organization",
-    #  "Pages", "School", "Series", "Type", "Url", "DOI", "File", "Volume",
-    #  "Keywords"
-    #  ]
     self.entries = ["ENTRYTYPE", "ID"] + [x.lower() for x in Mkbib.fields]
-    bibdatabase.STANDARD_TYPES.add("online")
-    # print(bibtexparser.bibdatabase.STANDARD_TYPES)
-    #  print(self.entries)
+    #  bibdatabase.STANDARD_TYPES.add("online")
 
   def parsing_read(self, bibfile):
-    # with open(filename) as bibtex_file:
-    parser = BibTexParser()
-    self.db = bibtexparser.load(bibfile, parser=parser)
-    # print(self.db.entries)
+    self.db = bibtexparser.parse_string(bibfile)
     for i in range(0, len(self.db.entries)):
-      tuples = tuple([self.db.entries[i].get(entry) for entry in self.entries])
+      fields = self.db.entries[i].fields_dict
+      lists = list([
+          fields[entry].value if entry in fields else None
+          for entry in self.entries
+      ])
+      lists[0] = self.db.entries[i].entry_type
+      lists[1] = self.db.entries[i].key
+      tuples = tuple(lists)
       self.booklist.append(tuples)
       self.tupls = tuples
-      # print(str(i))
-      # print(tuples)
     return self.tupls
 
   def parsing_write(self, filename):
-    # print(self.booklist)
-    datalist = []
-    writer = BibTexWriter()
-    writer.indent = '    '
+    from bibtexparser.model import Entry, Field
+    datalst = []
     for ref in self.TreeView.full_list:
-      # print(type(ref))
-      datadict = dict(
-          (k, v) for k, v in zip(self.entries, ref) if v is not None)
-      datalist.append(datadict)
-    self.db.entries = datalist
-    with open(filename, 'w') as bibfile:
-      bibfile.write(writer.write(self.db))
+      datadict = Entry(entry_type=ref[0],
+                       key=ref[1],
+                       fields=[
+                           Field(k, v)
+                           for k, v in zip(self.entries[2:], ref[2:])
+                           if v is not None
+                       ])
+
+      datalst.append(datadict)
+    lib = bibtexparser.Library(datalst)
+    bibtexparser.write_file(filename, lib)

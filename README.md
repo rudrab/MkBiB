@@ -1,5 +1,4 @@
-MkBiB
-=====
+# MkBiB
 - [Introduction](#intro)
 - [Install](#install)
   - [Dependencies](#depend)
@@ -10,15 +9,15 @@ MkBiB
 - [Contact](#contact)
 - [My Other App](#app)
 
-Introduction
-============
+## Introduction
+
 You write articles in peer reviewed journal, and your `Downloads` folder is usually a mess. Now
 manage your journals as you write it: from your BiBTeX.
 
-Install
-=======
+## Install
+
 Do it in standard Linux way:
-``` 
+```
 autogen.sh; make; sudo make install
 ```
 This will, by default, install the code in `/usr/local/`.
@@ -27,6 +26,8 @@ This code is build using `python-3` and `Gtk-3`. So, you must have these two ins
 system. The python modules needed are few, and mostly comes bundled with standard `python-3`
 installation; or you can install them using `$sudo pip install <module>`
 
+This code is build using [bibtexparser](https://bibtexparser.readthedocs.io/en/main/).
+We are currently in process to move from bibtexparser-v1.4->v2.
 #### Linux
 An auxiliary code `mod_install.sh` is given to install all the dependencies.
 
@@ -48,25 +49,25 @@ Usage
 -----
 There are multiple options to do create/manage BiBTeX files.
 1. Create it manually by filling up the entry on the left panel. `Type` and `BiBTeXKey` is
-   mandatory for this format. Then, press `"Create Manually"` button.
+   mandatory for this format. Then, press `"Create Manually"` button. (Borken in Devel branch)
 
 2. You can paste a complete `BiBTeX` entry copied from somewhere else by clicking `+ sign -> Copy
-   BiBTeX`.
+   BiBTeX`. (Broken in Devel branch)
 
 3. You can create `BiBTeX` entry from internet. Your options are:
     1. [doi](https://www.doi.org/) of the article. The mandatory field is:
       * `Extra III -> DOI`
     2. Search [Google Scholar](https://scholar.google.com)<sup>[1](#gsfoot)</sup>   or [Crossref](http://www.crossref.org/)
       * The mandatory field is:
-        * Author  
+        * Author
       * Auxillary fields are:
         * Year
         * Title
 
 ToDo
 ----
-- Convert intermediate BiBTeX to sql database.
-- Include BiBLaTeX keys.
+- Complete bibtexparser-v2 move
+- Move to GTK-4
 
 Contact
 -------

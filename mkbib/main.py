@@ -33,6 +33,7 @@ from gi.repository import Gdk, Gio, Gtk  # isort:skip
 
 
 class Window(Gtk.ApplicationWindow):
+
   def __init__(self, application, giofile=None):
     Gtk.ApplicationWindow.__init__(self,
                                    application=application,
@@ -128,41 +129,7 @@ class Window(Gtk.ApplicationWindow):
 
     # Generate Entry type
     key_store = Gtk.ListStore(int, str)
-    keys = [
-        "article",
-        "book",
-        "mvbook",
-        "inbook",
-        "bookinbook",
-        "suppbook",
-        "booklet",
-        "collection",
-        "mvcollection",
-        "incollection",
-        "suppcollection",
-        "manual",
-        "misc",
-        "online",
-        "patent",
-        "periodical",
-        "suppperiodical",
-        "proceedings",
-        "mvproceedings",
-        "inproceedings",
-        "reference",
-        "mvreference",
-        "inreference",
-        "report",
-        "set",
-        "thesis",
-        "unpublished",
-        "custom",
-        "conference",
-        "electronic",
-        "masterthesis",
-        "phdthesis",
-        "techreport",
-    ]
+    keys = Mkbib.entries
     for key in keys:
       key_store.append([keys.index(key), key])
 
@@ -290,7 +257,8 @@ class Window(Gtk.ApplicationWindow):
       self.TreeView.bookstore.clear()
       self.TreeView.indxcount = 0
       with open(self.filename, "r") as fname:
-        self.Parser.parsing_read(fname)
+        data = fname.read()
+        self.Parser.parsing_read(data)
         self.Files.chk_subdir(
             os.path.splitext(os.path.basename(self.filename))[0])
         self.status.push(self.context, self.Files.base_status)
@@ -412,15 +380,20 @@ class Window(Gtk.ApplicationWindow):
     self.bsearch.set_active(0)
 
   def get_data(self, datalist):
-    neworder = [
-        3, 0, 2, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-        20, 21, 22, 23, 24, 25, 26, 27
-    ]
-    fields = [Mkbib.fields[i] for i in neworder]
+    #  neworder = [
+    #  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+    #  20, 21, 22, 23, 24, 25, 26, 27
+    #  ]
+    #  neworder = [
+    #  3, 0, 2, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+    #  20, 21, 22, 23, 24, 25, 26, 27
+    #  ]
+    #  fields = [Mkbib.fields[i] for i in neworder]
+    fields = Mkbib.fields
     datatup = tuple(
         [self.name] + [self.KeyEntry.get_text()] +
         [self.all_fields[field].get_text() or None for field in fields])
-    print(len(datatup))
+    #  print(len(datatup))
     self.Parser.booklist.clear()
     self.Parser.booklist.append(datatup)
     self.TreeView.viewer(self.Parser.booklist)
@@ -430,6 +403,7 @@ class Window(Gtk.ApplicationWindow):
 
 
 class mkbib(Gtk.Application):
+
   def __init__(self):
     Gtk.Application.__init__(self)
     self.connect("startup", self.startup)

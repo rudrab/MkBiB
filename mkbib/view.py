@@ -31,9 +31,13 @@ class treeview():
 
   # Need to be aligned properly
   # Type and value doesnot match
+  #  neworder = [
+  #  3, 0, 2, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+  #  21, 22, 23, 26, 24, 25, 27
+  #  ]
   neworder = [
-      3, 0, 2, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-      21, 22, 23, 26, 24, 25, 27
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+      21, 22, 23, 24, 25, 26, 27
   ]
   entries = [Mkbib.fields[i] for i in neworder]
   entries.insert(0, "ID")
@@ -73,9 +77,7 @@ class treeview():
 
     # This is crc block
 
-    for i, column_title in enumerate(
-        #  ["Type", "Key", "Title", "Author", "Journal", "Year"]):
-        ["Type", "Key"] + Mkbib.fields[:4]):
+    for i, column_title in enumerate(["Type", "Key"] + Mkbib.fields[:4]):
       renderer = Gtk.CellRendererText()
       renderer.set_property("wrap-width", 100)
       if i > 1:

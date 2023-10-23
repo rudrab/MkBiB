@@ -22,6 +22,7 @@ from gi.repository import Gtk, Gio  # isort:skip
 
 
 class MenuManager(Gtk.Window):
+
   def __init__(self):
     self.parsing = pybib.parser()
     self.TreeView = view.treeview()
