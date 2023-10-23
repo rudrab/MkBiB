@@ -97,7 +97,7 @@ class MenuManager(Gtk.Window):
   def create_from_buffer(self, widget, textbuffer, window):
     start_iter = textbuffer.get_start_iter()
     end_iter = textbuffer.get_end_iter()
-    text = io.StringIO(textbuffer.get_text(start_iter, end_iter, True))
+    text = textbuffer.get_text(start_iter, end_iter, True)
     del self.parsing.booklist[:]
     self.parsing.parsing_read(text)
     self.TreeView.viewer(self.parsing.booklist)

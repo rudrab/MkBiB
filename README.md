@@ -13,10 +13,13 @@
 
 You write articles in peer reviewed journal, and your `Downloads` folder is usually a mess. Now
 manage your journals as you write it: from your BiBTeX.
-> This is a development branch. Many features, notably copy bibtex is broken.
+> This is a development branch. Many features, notably `IMPORT RIS` is broken.
+
+### New in version 1.0
+ - Better handling of LaTeX maths (This is the primary reason to move to `bibtexparser-v2`)
+ - Faster
 
 ## Install
-
 Do it in standard Linux way:
 ```
 autogen.sh; make; sudo make install
@@ -55,10 +58,10 @@ Usage
 -----
 There are multiple options to do create/manage BiBTeX files.
 1. Create it manually by filling up the entry on the left panel. `Type` and `BiBTeXKey` is
-   mandatory for this format. Then, press `"Create Manually"` button. (Borken in Devel branch)
-
+   mandatory for this format. Then, press `"Create Manually"` button.
 2. You can paste a complete `BiBTeX` entry copied from somewhere else by clicking `+ sign -> Copy
-   BiBTeX`. (Broken in Devel branch)
+   BiBTeX`.
+3. Import from other citation format, like RIS. (Broken)
 
 3. You can create `BiBTeX` entry from internet. Your options are:
     1. [doi](https://www.doi.org/) of the article. The mandatory field is:
