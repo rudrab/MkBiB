@@ -15,7 +15,9 @@ class parser():
     self.db = bibtexparser.Library()
     self.TreeView = view.treeview()
     self.entries = ["ENTRYTYPE", "ID"] + [x.lower() for x in Mkbib.fields]
-    #  bibdatabase.STANDARD_TYPES.add("online")
+    self.bibtex_format = bibtexparser.BibtexFormat()
+    self.bibtex_format.indent = '  '
+    self.bibtex_format.block_separator = '\n'  #  bibdatabase.STANDARD_TYPES.add("online")
 
   def parsing_read(self, bibfile):
     self.db = bibtexparser.parse_string(bibfile)
@@ -46,4 +48,4 @@ class parser():
 
       datalst.append(datadict)
     lib = bibtexparser.Library(datalst)
-    bibtexparser.write_file(filename, lib)
+    bibtexparser.write_file(filename, lib, bibtex_format=self.bibtex_format)
