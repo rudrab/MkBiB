@@ -149,16 +149,16 @@ class data():
       r = requests.get(url, headers=headers, timeout=5)
       text = r.text  # io.StringIO(r.text)
       del self.Parser.booklist[:]
-      print(r.text)
       self.Parser.parsing_read(text)
       biblst = [list(elem) for elem in self.Parser.booklist]
+      print(biblst)
       biblst[0].insert(0, self.TreeView.row_num)
       self.TreeView.viewer(self.Parser.booklist)
 
     except:
       try:
         #  webbrowser.open(url)
-        print("DOI is not available")
+        print("Can not read from this DOI")
       except:
         print("DOI is not available")
         self.Messages.on_warn_clicked("DOI is not given",
@@ -176,7 +176,7 @@ class data():
     try:
       filestr = sp.check_output(["pdf2txt.py", "-p", "1",
                                  filename]).decode("utf-8")
-      doi = re.search('doi:\s*[A-Za-z0-9./]*', filestr,
+      doi = re.search('doi:*[A-Za-z0-9./]*', filestr,
                       re.IGNORECASE)  # .group()[4:]
     except:
       pdf = PyPDF2.PdfFileReader(open(filename, "rb"))
